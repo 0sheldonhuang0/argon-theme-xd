@@ -11,11 +11,12 @@
 					</div>
 				</section>
 				<?php
-					echo get_option('argon_footer_html');
+					echo argon_xd_footer_html();
 				?>
 			</footer>
 		</div>
-		<script src="<?php echo $GLOBALS['assets_path']; ?>/argontheme.js?v<?php echo $GLOBALS['theme_version']; ?>"></script>
+		<?php $argon_xd_script_path = get_template_directory() . '/argontheme.js'; ?>
+		<script src="<?php echo $GLOBALS['assets_path']; ?>/argontheme.js?v=<?php echo file_exists( $argon_xd_script_path ) ? filemtime( $argon_xd_script_path ) : $GLOBALS['theme_version']; ?>"></script>
 		<?php if (get_option('argon_math_render') == 'mathjax3') { /*Mathjax V3*/?>
 			<script>
 				window.MathJax = {

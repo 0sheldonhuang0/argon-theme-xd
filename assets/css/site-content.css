@@ -1,61 +1,76 @@
 /* Shared interior pages -------------------------------------------------- */
 
-body:not(.home):not(.front-page) {
+body.argon-xd-interior {
+	/* 内容栏宽度的唯一来源：标题卡、文章列表、瀑布流都取这个值，
+	   避免某一侧被单独改窄后出现“标题卡比列表宽”的错位。 */
+	--xd-shell-width: 1116px;
+	--xd-card-pad-x: 26px;
+	--xd-card-pad-y: 24px;
+	/* 文章卡片的内边距：列表卡沿用 card-pad，详情/单页在下面各加一点点。 */
+	--xd-post-pad-x: var(--xd-card-pad-x);
+	--xd-post-pad-y: var(--xd-card-pad-y);
+	--xd-card-radius: 24px;
 	background: #f8f9fc;
 }
 
-body:not(.home):not(.front-page) #banner,
-body:not(.home):not(.front-page) #leftbar,
-body:not(.home):not(.front-page) #sidebar_mask,
-body:not(.home):not(.front-page) #open_sidebar,
-body:not(.home):not(.front-page) #fabtn_open_sidebar {
+body.argon-xd-interior #banner,
+body.argon-xd-interior #leftbar,
+body.argon-xd-interior #sidebar_mask,
+body.argon-xd-interior #open_sidebar,
+body.argon-xd-interior #fabtn_open_sidebar {
 	display: none !important;
 }
 
-body:not(.home):not(.front-page) #content {
+/* 顶栏是 fixed 定位（桌面高 70px / 移动端 58px），内页必须留出相应上边距，
+   否则页面标题卡会被顶栏压住。 */
+body.argon-xd-interior #content {
 	margin: 0 auto !important;
 	max-width: 1180px;
 	min-height: calc(100vh - 76px);
-	padding: 132px 32px 0;
+	padding: 94px 32px 0;
 	width: 100%;
 }
 
-body:not(.home):not(.front-page) #primary {
+body.argon-xd-interior #primary {
 	float: none;
 	margin: 0 auto;
-	max-width: 1116px;
-	padding-bottom: 80px;
+	max-width: var(--xd-shell-width);
+	padding-bottom: 24px;
 	width: 100%;
 }
 
-body.single:not(.home) #primary,
-body.page:not(.home) #primary {
-	max-width: 920px;
+/* 单篇 / 单页正文更窄，标题卡跟着收窄，保证和正文左右对齐；
+   正文只有一列长文，卡片内边距比列表卡略大，读起来不贴边。 */
+body.argon-xd-interior.single,
+body.argon-xd-interior.page {
+	--xd-shell-width: 920px;
+	--xd-post-pad-x: calc(var(--xd-card-pad-x) + 8px);
+	--xd-post-pad-y: calc(var(--xd-card-pad-y) + 6px);
 }
 
-body:not(.home):not(.front-page) #main {
+body.argon-xd-interior #main {
 	overflow: visible;
 	padding: 0;
 }
 
-body:not(.home):not(.front-page) .page-information-card-container {
+body.argon-xd-interior .page-information-card-container {
 	margin: 0 auto;
-	max-width: 1116px;
+	max-width: var(--xd-shell-width);
 }
 
-body:not(.home):not(.front-page) .page-information-card {
+body.argon-xd-interior .page-information-card {
 	background: #fff !important;
 	border: 1px solid #e7eaf1 !important;
-	border-radius: 24px;
+	border-radius: var(--xd-card-radius);
 	box-shadow: 0 12px 32px rgba(23, 43, 77, .05) !important;
 	margin: 0 0 24px;
 }
 
-body:not(.home):not(.front-page) .page-information-card .card-body {
+body.argon-xd-interior .page-information-card .card-body {
 	padding: 34px 38px;
 }
 
-body:not(.home):not(.front-page) .page-information-card h3 {
+body.argon-xd-interior .page-information-card h3 {
 	color: #172b4d !important;
 	font-size: clamp(1.85rem, 4vw, 2.6rem);
 	font-weight: 650;
@@ -64,95 +79,306 @@ body:not(.home):not(.front-page) .page-information-card h3 {
 	margin: 0;
 }
 
-body:not(.home):not(.front-page) #content .card:not(#footer) {
+body.argon-xd-interior #content .card:not(#footer) {
 	animation: none;
 	background: #fff !important;
 	border: 1px solid #e7eaf1 !important;
-	border-radius: 24px !important;
+	border-radius: var(--xd-card-radius) !important;
 	box-shadow: 0 12px 32px rgba(23, 43, 77, .05) !important;
 }
 
-body:not(.home):not(.front-page) article.post {
-	margin-bottom: 22px;
-	padding: 40px 44px 44px;
+/* Bootstrap 里 .card 还带 margin-left/right: 15px，而标题卡被改成了 margin:0，
+   结果是标题卡比下面的文章卡宽 30px、左右边缘对不齐。这里统一清掉。 */
+body.argon-xd-interior article.post,
+body.argon-xd-interior #comments,
+body.argon-xd-interior #post_comment,
+body.argon-xd-interior .post-navigation,
+body.argon-xd-interior .related-posts {
+	margin-left: 0;
+	margin-right: 0;
 }
 
-body:not(.home):not(.front-page) article.post-preview-layout-2 {
+body.argon-xd-interior article.post {
+	margin-bottom: 18px;
+	padding: var(--xd-post-pad-y) var(--xd-post-pad-x) calc(var(--xd-post-pad-y) + 2px);
+}
+
+body.argon-xd-interior article.post-preview-layout-2 {
 	padding: 0;
 }
 
-body:not(.home):not(.front-page) article.post-preview-layout-2 .post-content-container {
-	padding: 34px 38px;
+body.argon-xd-interior article.post-preview-layout-2 .post-content-container {
+	padding: var(--xd-card-pad-y) var(--xd-card-pad-x);
 }
 
-body:not(.home):not(.front-page) .post-header {
+body.argon-xd-interior .post-header {
 	margin-bottom: 26px;
 	text-align: left !important;
 }
 
-body:not(.home):not(.front-page) .post-title {
+body.argon-xd-interior .post-title {
 	color: #172b4d !important;
-	font-size: clamp(1.65rem, 3vw, 2.35rem);
+	font-size: clamp(1.35rem, 2vw, 1.55rem);
 	font-weight: 650;
-	letter-spacing: -.025em;
-	line-height: 1.28;
+	letter-spacing: -.015em;
+	line-height: 1.38;
 }
 
-body:not(.home):not(.front-page) .post-title:hover {
+body.argon-xd-interior .post-title:hover {
 	color: var(--themecolor) !important;
 	letter-spacing: -.025em;
 }
 
-body.single:not(.home) .post-full .post-title,
-body.page:not(.home) .post-full .post-title {
-	font-size: clamp(2rem, 5vw, 3.25rem);
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-title,
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-title:hover {
+	color: #fff !important;
 }
 
-body:not(.home):not(.front-page) .post-meta {
+/* 详情页/单页标题必须始终大于正文里最大的 h1（含窄屏），
+   原来的窄屏值 1.75rem 会和 h2 的 1.75rem 打平。 */
+body.argon-xd-interior.single .post-full .post-title,
+body.argon-xd-interior.page .post-full .post-title {
+	font-size: clamp(2.1rem, 3.2vw, 2.6rem);
+	letter-spacing: -.022em;
+	line-height: 1.26;
+}
+
+body.argon-xd-interior .post-meta {
 	color: #7f8ba0;
 	margin-top: 12px;
 }
 
-body:not(.home):not(.front-page) .post-meta-detail,
-body:not(.home):not(.front-page) .post-meta-devide {
+body.argon-xd-interior .post-meta-detail,
+body.argon-xd-interior .post-meta-devide {
 	font-size: .82rem;
 	line-height: 1.7;
 }
 
-body:not(.home):not(.front-page) .post-content {
+body.argon-xd-interior .post-content {
 	color: #3d4b65;
 	font-size: 1.03rem;
 	line-height: 1.95;
 }
 
-body:not(.home):not(.front-page) .post-content p {
+/* 文章页正文两端对齐：多行段落左右都贴齐，行尾不再参差。
+   只在单篇 / 单页的正文里生效——列表和瀑布流是两三行的摘要，
+   对齐会把行内字距撑得很开，所以保持左对齐。
+   标题、代码、表格、图注按原样左对齐，避免短标题被撑开字距。 */
+body.argon-xd-interior.single .post-full .post-content,
+body.argon-xd-interior.page .post-full .post-content {
+	text-align: justify;
+	text-justify: inter-ideograph;
+}
+
+body.argon-xd-interior.single .post-full .post-content h1,
+body.argon-xd-interior.single .post-full .post-content h2,
+body.argon-xd-interior.single .post-full .post-content h3,
+body.argon-xd-interior.single .post-full .post-content h4,
+body.argon-xd-interior.single .post-full .post-content h5,
+body.argon-xd-interior.single .post-full .post-content h6,
+body.argon-xd-interior.single .post-full .post-content pre,
+body.argon-xd-interior.single .post-full .post-content code,
+body.argon-xd-interior.single .post-full .post-content table,
+body.argon-xd-interior.single .post-full .post-content figcaption,
+body.argon-xd-interior.page .post-full .post-content h1,
+body.argon-xd-interior.page .post-full .post-content h2,
+body.argon-xd-interior.page .post-full .post-content h3,
+body.argon-xd-interior.page .post-full .post-content h4,
+body.argon-xd-interior.page .post-full .post-content h5,
+body.argon-xd-interior.page .post-full .post-content h6,
+body.argon-xd-interior.page .post-full .post-content pre,
+body.argon-xd-interior.page .post-full .post-content code,
+body.argon-xd-interior.page .post-full .post-content table,
+body.argon-xd-interior.page .post-full .post-content figcaption {
+	text-align: left;
+}
+
+/* 长链接、英文串在两端对齐时会把一整行撑出卡片，允许在必要时断行 */
+body.argon-xd-interior .post-content p,
+body.argon-xd-interior .post-content li {
+	overflow-wrap: break-word;
+}
+
+body.argon-xd-interior #main.article-list .post-content {
+	display: -webkit-box;
+	font-size: .96rem;
+	line-height: 1.75;
+	margin-top: 8px;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 5;
+}
+
+body.argon-xd-interior #main.article-list .post-content p:last-child {
+	margin-bottom: 0;
+}
+
+body.argon-xd-interior #main.article-list .post-header {
+	margin-bottom: 14px;
+}
+
+body.argon-xd-interior #main.article-list .post-meta {
+	margin-top: 7px;
+}
+
+body.argon-xd-interior #main.article-list .post-tags {
+	display: none;
+}
+
+body.argon-xd-interior #main.article-list article.post:last-of-type {
+	margin-bottom: 0;
+}
+
+body.argon-xd-interior #main.waterflow article.post {
+	border-radius: 18px !important;
+	padding: 22px 22px 24px;
+}
+
+/* 作者样式给 .post-preview 加了 transition: all .5s，瀑布流卡片是绝对定位、
+   靠脚本实时量高度排版的：宽度和 top 只要走动画，量到的高度就是过渡中的中间值，
+   横向列间距（10px）和纵向行间距会被拉成不一样的数字。这里强制关掉。 */
+body.argon-xd-interior #main.waterflow article.post,
+body.argon-xd-interior #main.waterflow .shuoshuo-preview-container,
+body.argon-xd-interior #main.waterflow .waterflow-placeholder {
+	transition: none !important;
+}
+
+body.argon-xd-interior #main.waterflow article.post-preview-layout-2 {
+	display: block;
+	padding: 22px 22px 24px;
+}
+
+body.argon-xd-interior #main.waterflow article.post-preview-layout-2 .post-content-container {
+	padding: 0;
+}
+
+body.argon-xd-interior #main.waterflow .post-title {
+	display: -webkit-box;
+	font-size: 1.3rem;
+	line-height: 1.45;
+	max-width: 100%;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+body.argon-xd-interior #main.waterflow .post-content {
+	display: block;
+	font-size: .96rem;
+	line-height: 1.68;
+	overflow: visible;
+	-webkit-line-clamp: unset;
+}
+
+body.argon-xd-interior #main.waterflow .post-thumbnail {
+	display: none !important;
+}
+
+body.argon-xd-interior #main.waterflow article.post-preview-layout-2 .post-header.post-header-with-thumbnail,
+body.argon-xd-interior #main.waterflow article.post-preview-layout-3 > .post-header.post-header-with-thumbnail {
+	display: none;
+}
+
+body.argon-xd-interior #main.waterflow article:not(.post-preview-layout-2):not(.post-preview-layout-3) .post-header.post-header-with-thumbnail {
+	margin: 0 0 14px;
+	overflow: visible;
+}
+
+body.argon-xd-interior #main.waterflow article:not(.post-preview-layout-2):not(.post-preview-layout-3) .post-header-text-container {
+	background: none;
+	color: inherit;
+	padding: 0;
+	position: static;
+}
+
+body.argon-xd-interior #main.waterflow article:not(.post-preview-layout-2):not(.post-preview-layout-3) .post-header-with-thumbnail .post-title,
+body.argon-xd-interior #main.waterflow article:not(.post-preview-layout-2):not(.post-preview-layout-3) .post-header-with-thumbnail .post-title:hover {
+	color: #172b4d !important;
+}
+
+body.argon-xd-interior #main.waterflow .post-meta-detail,
+body.argon-xd-interior #main.waterflow .post-meta-devide {
+	font-size: .76rem;
+	line-height: 1.55;
+}
+
+body.argon-xd-interior #main.waterflow .post-tags {
+	display: none;
+}
+
+body.argon-xd-interior .post-content p {
 	margin-bottom: 1.35em;
 }
 
-body:not(.home):not(.front-page) .post-content h2,
-body:not(.home):not(.front-page) .post-content h3,
-body:not(.home):not(.front-page) .post-content h4 {
+/* 正文标题阶梯（基准：正文 1rem = 16px）
+   文章标题 > h1 > h2 > h3 > h4 > h5 > h6 > 正文，每一级都显式写死字号。
+   父主题给 article h1..h6 定的是 30/26/22/18/15/13px，其中 h5、h6 比正文还小，
+   所以不能靠继承，必须逐级覆盖；同一条规则里父主题用了 margin-top: 18px !important，
+   这里也必须加 !important 才能生效。 */
+body.argon-xd-interior .post-content h1,
+body.argon-xd-interior .post-content h2,
+body.argon-xd-interior .post-content h3,
+body.argon-xd-interior .post-content h4,
+body.argon-xd-interior .post-content h5,
+body.argon-xd-interior .post-content h6 {
 	color: #172b4d;
 	font-weight: 650;
 	letter-spacing: -.02em;
-	line-height: 1.35;
-	margin-bottom: .7em;
-	margin-top: 1.8em;
+	line-height: 1.34;
+	margin: 2.1em 0 .7em !important;
 }
 
-body:not(.home):not(.front-page) .post-content h2 {
-	font-size: 1.75rem;
+body.argon-xd-interior .post-content h1 {
+	font-size: clamp(1.75rem, 2.6vw, 2rem);
+	letter-spacing: -.025em;
 }
 
-body:not(.home):not(.front-page) .post-content h3 {
-	font-size: 1.35rem;
+body.argon-xd-interior .post-content h2 {
+	font-size: clamp(1.5rem, 2.2vw, 1.7rem);
 }
 
-body:not(.home):not(.front-page) .post-content img {
-	border-radius: 18px;
+body.argon-xd-interior .post-content h3 {
+	font-size: clamp(1.4rem, 1.8vw, 1.5rem);
 }
 
-body:not(.home):not(.front-page) .post-content blockquote {
+body.argon-xd-interior .post-content h4 {
+	font-size: 1.25rem;
+}
+
+body.argon-xd-interior .post-content h5 {
+	font-size: 1.125rem;
+	letter-spacing: 0;
+}
+
+/* h6 与 h5 字号只差 1px，用字重和颜色做区分，保证它仍然大于正文 */
+body.argon-xd-interior .post-content h6 {
+	color: #344563;
+	font-size: 1.0625rem;
+	font-weight: 700;
+	letter-spacing: .01em;
+}
+
+body.argon-xd-interior .post-content img {
+	border-radius: 16px;
+	display: block;
+	height: auto;
+	margin: 1.6em auto;
+	max-width: 100%;
+}
+
+body.argon-xd-interior .post-content pre {
+	background: #f5f7fb;
+	border: 1px solid #e7eaf1;
+	border-radius: 14px;
+	color: #2b3650;
+	font-size: .88rem;
+	line-height: 1.7;
+	margin: 1.6em 0;
+	overflow-x: auto;
+	padding: 16px 18px;
+}
+
+body.argon-xd-interior .post-content blockquote {
 	background: rgba(var(--themecolor-rgbstr), .06);
 	border-left: 3px solid var(--themecolor);
 	border-radius: 0 14px 14px 0;
@@ -161,8 +387,8 @@ body:not(.home):not(.front-page) .post-content blockquote {
 	padding: 18px 22px;
 }
 
-body:not(.home):not(.front-page) .post-tags .badge,
-body:not(.home):not(.front-page) .tag.post-meta-detail-tag {
+body.argon-xd-interior .post-tags .badge,
+body.argon-xd-interior .tag.post-meta-detail-tag {
 	background: rgba(var(--themecolor-rgbstr), .08);
 	border: 1px solid rgba(var(--themecolor-rgbstr), .18);
 	border-radius: 999px;
@@ -171,141 +397,485 @@ body:not(.home):not(.front-page) .tag.post-meta-detail-tag {
 	padding: 6px 11px;
 }
 
-body:not(.home):not(.front-page) .post-header.post-header-with-thumbnail {
-	border-radius: 24px 24px 0 0;
+/* 原主题给缩略图头留的是 -30px 负边距，配合旧卡片 30px 内边距；
+   自定义卡片内边距变小后负边距会溢出卡片，这里统一按变量对齐。
+   布局 2 是左图右文的横向卡片，负边距会破坏它的 33% 列宽，单独处理。 */
+body.argon-xd-interior article:not(.post-preview-layout-2) .post-header.post-header-with-thumbnail {
+	border-radius: var(--xd-card-radius) var(--xd-card-radius) 0 0;
+	margin: calc(-1 * var(--xd-post-pad-y)) calc(-1 * var(--xd-post-pad-x)) 18px;
+	overflow: hidden;
 }
 
-body:not(.home):not(.front-page) .post-navigation,
-body:not(.home):not(.front-page) .related-posts,
-body:not(.home):not(.front-page) #comments,
-body:not(.home):not(.front-page) #post_comment,
-body:not(.home):not(.front-page) #share {
+body.argon-xd-interior article.post-preview-layout-3 .post-header.post-header-with-thumbnail {
 	margin-bottom: 22px;
 }
 
-body:not(.home):not(.front-page) .post-navigation {
-	font-size: 1rem;
-	padding: 28px 32px;
+body.argon-xd-interior article:not(.post-preview-layout-2) .post-header.post-header-with-thumbnail .post-thumbnail {
+	max-height: 280px;
+	min-height: 0;
+	object-fit: cover;
+	width: 100%;
 }
 
-body:not(.home):not(.front-page) .page-navigation-extra-text,
-body:not(.home):not(.front-page) .post-comment-title {
-	color: #172b4d;
+body.argon-xd-interior article.post-preview-layout-2 .post-header.post-header-with-thumbnail {
+	border-radius: var(--xd-card-radius) 0 0 var(--xd-card-radius);
+	margin: 0;
+}
+
+body.argon-xd-interior article.post-preview-layout-2 .post-thumbnail {
+	height: 100%;
+	max-height: none;
+}
+
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-header-text-container {
+	background: linear-gradient(to top, rgba(9, 14, 26, .86) 10%, rgba(9, 14, 26, .55) 58%, rgba(9, 14, 26, 0));
+	padding: 64px var(--xd-post-pad-x) 18px;
+}
+
+body.argon-xd-interior article.post-preview-layout-2 .post-header-text-container {
+	padding: 44px 22px 16px;
+}
+
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-meta,
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-meta-detail,
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-meta-devide {
+	color: rgba(255, 255, 255, .9);
+	opacity: 1;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+}
+
+body.argon-xd-interior .post-header.post-header-with-thumbnail .post-title {
+	filter: drop-shadow(0 1px 6px rgba(0, 0, 0, .45));
+}
+
+body.argon-xd-interior .post-navigation,
+body.argon-xd-interior .related-posts,
+body.argon-xd-interior #comments,
+body.argon-xd-interior #post_comment,
+body.argon-xd-interior #share {
+	margin-bottom: 22px;
+}
+
+/* 上下篇导航：Bootstrap 的 .card 自带 flex-direction: column，
+   如果只写 display:flex，两个导航项会沿主轴各占 260px（flex-basis 变成高度），
+   中间出现超过 200px 的空白。这里显式重置为横向排列。 */
+body.argon-xd-interior .post-navigation {
+	align-items: flex-start;
+	display: flex !important;
+	flex-direction: row;
+	flex-wrap: wrap;
 	font-size: 1rem;
+	gap: 18px 28px;
+	padding: 26px 32px;
+}
+
+body.argon-xd-interior .post-navigation-item {
+	display: block;
+	flex: 1 1 0;
+	min-width: 0;
+	width: auto;
+}
+
+body.argon-xd-interior .post-navigation-item > a {
+	color: #172b4d;
+	display: block;
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.55;
+}
+
+body.argon-xd-interior .post-navigation-item > a:hover {
+	color: var(--themecolor);
+}
+
+body.argon-xd-interior .page-navigation-extra-text {
+	color: #8a94a6;
+	display: block;
+	font-size: .8rem;
+	font-weight: 600;
+	letter-spacing: .04em;
+	margin-bottom: 7px;
+	opacity: 1;
+}
+
+body.argon-xd-interior .post-navigation-pre .page-navigation-extra-text i {
+	margin-right: 6px;
+}
+
+body.argon-xd-interior .post-navigation-next .page-navigation-extra-text i {
+	margin-left: 6px;
+}
+
+body.argon-xd-interior .post-comment-title {
+	align-items: center;
+	color: #172b4d;
+	display: flex;
+	font-size: 1.05rem;
+	font-weight: 650;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+/* 让评论区 / 表单 / 相关推荐的左右内边距与正文卡片一致，
+   否则同一列卡片的内容左边缘会差 6–8px（Bootstrap 的 .card-body 固定 1.5rem）。 */
+body.argon-xd-interior #comments > .card-body,
+body.argon-xd-interior #post_comment > .card-body,
+body.argon-xd-interior .related-posts > .card-body {
+	padding-left: var(--xd-card-pad-x);
+	padding-right: var(--xd-card-pad-x);
+	padding-top: var(--xd-card-pad-y);
+	padding-bottom: var(--xd-card-pad-y);
+}
+
+body.argon-xd-interior .post-comment-title i,
+body.argon-xd-interior .comments-title i {
+	margin-right: 0;
+}
+
+body.argon-xd-interior .comments-title {
+	align-items: center;
+	color: #172b4d;
+	display: flex;
+	font-size: 1.05rem;
+	font-weight: 650;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+/* 相关推荐：原样式是 inline-block 定宽卡片，背景用主题渐变、标题白色；
+   自定义成浅色卡片后必须同时把标题/箭头改成深色，否则文字等于消失。 */
+body.argon-xd-interior .related-post-card {
+	background: rgba(var(--themecolor-rgbstr), .08);
+	border: 1px solid rgba(var(--themecolor-rgbstr), .16);
+	border-radius: 14px;
+	height: 104px;
+	margin-right: 12px;
+	vertical-align: top;
+	width: 196px;
+}
+
+body.argon-xd-interior .related-post-card:last-child {
+	margin-right: 0;
+}
+
+body.argon-xd-interior .related-post-card:hover {
+	background: rgba(var(--themecolor-rgbstr), .14);
+}
+
+body.argon-xd-interior .related-post-card-container {
+	padding: 14px 16px;
+}
+
+body.argon-xd-interior .related-post-title.clamp {
+	color: #172b4d;
+	font-size: .9rem;
+	line-height: 1.5;
+	max-height: none;
+}
+
+body.argon-xd-interior .related-post-arrow {
+	bottom: 10px;
+	color: rgba(var(--themecolor-rgbstr), .75);
+	right: 12px;
+}
+
+/* 评论区 */
+body.argon-xd-interior .comment-list {
+	margin: 0;
+	padding: 0;
+}
+
+body.argon-xd-interior .comment-item-inner {
+	border-bottom-color: #eef1f6;
+}
+
+body.argon-xd-interior .comment-author {
+	color: #172b4d;
+	font-size: .95rem;
 	font-weight: 650;
 }
 
-body:not(.home):not(.front-page) .related-post-card {
-	background: rgba(var(--themecolor-rgbstr), .08);
-	border: 1px solid rgba(var(--themecolor-rgbstr), .15);
-	border-radius: 14px;
+body.argon-xd-interior .comment-info {
+	color: #98a2b3;
 }
 
-body:not(.home):not(.front-page) .related-post-title.clamp {
-	color: #172b4d;
+body.argon-xd-interior .comment-item-text {
+	color: #3d4b65;
+	font-size: .95rem;
+	line-height: 1.8;
+	margin-bottom: 6px;
 }
 
-body:not(.home):not(.front-page) .pagination .page-link {
+/* 评论表单：原样式的 mb-4（1.5rem）叠在 form-group 上，移动端每个字段
+   之间会出现近 40px 的空档，这里统一收紧。 */
+body.argon-xd-interior #post_comment .input-group.mb-4 {
+	margin-bottom: 14px !important;
+}
+
+body.argon-xd-interior #post_comment .form-group {
+	margin-bottom: 0;
+}
+
+body.argon-xd-interior #post_comment_content {
+	margin-bottom: 6px;
+	margin-top: 16px;
+}
+
+body.argon-xd-interior #post_comment .custom-control {
+	margin-bottom: 14px;
+}
+
+body.argon-xd-interior #post_comment .btn-primary {
+	font-size: .95rem;
+	font-weight: 600;
+	padding: 10px 24px;
+}
+
+body.argon-xd-interior .pagination .page-link {
 	border: 0;
 	border-radius: 999px !important;
 	box-shadow: none;
 	margin: 0 3px;
+	white-space: nowrap;
 }
 
-body:not(.home):not(.front-page) .pagination .page-item.active .page-link {
+body.argon-xd-interior .pagination .page-item.active .page-link {
 	background: var(--themecolor);
 }
 
-body:not(.home):not(.front-page) .form-control,
-body:not(.home):not(.front-page) textarea {
-	border-color: #e2e7f0;
-	border-radius: 14px;
-	box-shadow: none;
+.form-control,
+.form-control-alternative,
+textarea.form-control {
+	background: #f4f6fa !important;
+	border: 1px solid #dfe4ec !important;
+	border-radius: 12px !important;
+	box-shadow: none !important;
 }
 
-body:not(.home):not(.front-page) .btn {
+.form-control:focus,
+.form-control-alternative:focus,
+textarea.form-control:focus {
+	background: #fff !important;
+	border-color: rgba(var(--themecolor-rgbstr), .55) !important;
+	box-shadow: 0 0 0 3px rgba(var(--themecolor-rgbstr), .1) !important;
+}
+
+.input-group.input-group-alternative {
+	background: #f4f6fa !important;
+	border: 1px solid #dfe4ec !important;
+	border-radius: 12px !important;
+	box-shadow: none !important;
+	overflow: hidden;
+}
+
+.input-group.input-group-alternative:focus-within {
+	background: #fff !important;
+	border-color: rgba(var(--themecolor-rgbstr), .55) !important;
+	box-shadow: 0 0 0 3px rgba(var(--themecolor-rgbstr), .1) !important;
+}
+
+.input-group.input-group-alternative .form-control,
+.input-group.input-group-alternative .input-group-text {
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+#navbar-main .input-group.input-group-alternative {
+	background: rgba(255, 255, 255, .14) !important;
+	border-color: rgba(255, 255, 255, .18) !important;
+}
+
+body.argon-xd-interior .btn {
 	border-radius: 999px;
 }
 
-body:not(.home):not(.front-page) #float_action_buttons .fabtn {
+body.argon-xd-interior #float_action_buttons .fabtn {
 	background: #fff;
 	border: 1px solid #e7eaf1;
 	box-shadow: 0 8px 22px rgba(23, 43, 77, .08) !important;
 }
 
-html.darkmode body:not(.home):not(.front-page) {
+html.darkmode body.argon-xd-interior {
 	background: #15171b;
 }
 
-html.darkmode body:not(.home):not(.front-page) #content .card:not(#footer),
-html.darkmode body:not(.home):not(.front-page) .page-information-card {
+html.darkmode body.argon-xd-interior #content .card:not(#footer),
+html.darkmode body.argon-xd-interior .page-information-card {
 	background: #1d2026 !important;
 	border-color: #2b3039 !important;
 }
 
-html.darkmode body:not(.home):not(.front-page) .post-title,
-html.darkmode body:not(.home):not(.front-page) .page-information-card h3,
-html.darkmode body:not(.home):not(.front-page) .post-content h2,
-html.darkmode body:not(.home):not(.front-page) .post-content h3,
-html.darkmode body:not(.home):not(.front-page) .post-content h4,
-html.darkmode body:not(.home):not(.front-page) .page-navigation-extra-text,
-html.darkmode body:not(.home):not(.front-page) .post-comment-title {
+html.darkmode body.argon-xd-interior .post-title,
+html.darkmode body.argon-xd-interior .page-information-card h3,
+html.darkmode body.argon-xd-interior .post-content h1,
+html.darkmode body.argon-xd-interior .post-content h2,
+html.darkmode body.argon-xd-interior .post-content h3,
+html.darkmode body.argon-xd-interior .post-content h4,
+html.darkmode body.argon-xd-interior .post-content h5,
+html.darkmode body.argon-xd-interior .post-content h6,
+html.darkmode body.argon-xd-interior .post-comment-title,
+html.darkmode body.argon-xd-interior .comments-title,
+html.darkmode body.argon-xd-interior .comment-author,
+html.darkmode body.argon-xd-interior .post-navigation-item > a {
 	color: #f3f5fa !important;
 }
 
-html.darkmode body:not(.home):not(.front-page) .post-content {
+html.darkmode body.argon-xd-interior .page-navigation-extra-text,
+html.darkmode body.argon-xd-interior .comment-info {
+	color: #9ba4b5;
+}
+
+html.darkmode body.argon-xd-interior .comment-item-text {
 	color: #c9cfda;
 }
 
+html.darkmode body.argon-xd-interior .comment-item-inner {
+	border-bottom-color: #2b3039;
+}
+
+html.darkmode body.argon-xd-interior .post-content pre {
+	background: #20242b;
+	border-color: #2e3440;
+	color: #d7dce6;
+}
+
+html.darkmode body.argon-xd-interior .related-post-card {
+	background: rgba(var(--themecolor-rgbstr), .18);
+	border-color: rgba(var(--themecolor-rgbstr), .3);
+}
+
+html.darkmode body.argon-xd-interior .post-content {
+	color: #c9cfda;
+}
+
+html.darkmode body.argon-xd-interior .post-content blockquote {
+	background: rgba(var(--themecolor-rgbstr), .12);
+	color: #b9c1d0;
+}
+
+html.darkmode body.argon-xd-interior .related-post-title.clamp {
+	color: #f3f5fa;
+}
+
+html.darkmode body.argon-xd-interior #float_action_buttons .fabtn {
+	background: #1d2026;
+	border-color: #2b3039;
+}
+
+html.darkmode .form-control,
+html.darkmode .form-control-alternative,
+html.darkmode textarea.form-control,
+html.darkmode .input-group.input-group-alternative {
+	background: #252931 !important;
+	border-color: #363c47 !important;
+}
+
+html.darkmode .form-control:focus,
+html.darkmode .form-control-alternative:focus,
+html.darkmode textarea.form-control:focus,
+html.darkmode .input-group.input-group-alternative:focus-within {
+	background: #292e37 !important;
+}
+
 @media (max-width: 900px) {
-	body:not(.home):not(.front-page) #content {
-		padding: 108px 20px 0;
+	body.argon-xd-interior {
+		--xd-card-pad-x: 22px;
+		--xd-card-pad-y: 22px;
 	}
 
-	body:not(.home):not(.front-page) #primary {
-		padding-bottom: 60px;
+	body.argon-xd-interior #content {
+		padding: 78px 20px 0;
 	}
 
-	body:not(.home):not(.front-page) #main {
+	body.argon-xd-interior #primary {
+		padding-bottom: 24px;
+	}
+
+	body.argon-xd-interior #main {
 		padding: 0 !important;
 	}
 
-	body:not(.home):not(.front-page) article.post {
-		padding: 30px 28px 34px;
+	body.argon-xd-interior article.post-preview-layout-2 {
+		padding: 0;
 	}
 
-	body:not(.home):not(.front-page) article.post-preview-layout-2 {
-		padding: 0;
+	body.argon-xd-interior article:not(.post-preview-layout-2) .post-header.post-header-with-thumbnail .post-thumbnail {
+		max-height: 240px;
+	}
+
+	/* 原主题在窄屏给 .post-full 加了 -10px 负边距（旧版卡片贴边设计），
+	   现在卡片统一靠 #content 的内边距控制，负边距会让正文卡比评论区宽 20px。 */
+	body.argon-xd-interior .post-full {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+	/* 窄屏下上下篇改为纵向堆叠，两栏各 260px 会把标题挤成两三个字一行 */
+	body.argon-xd-interior .post-navigation {
+		flex-direction: column;
+		gap: 16px;
+		padding: 22px 24px;
+	}
+
+	body.argon-xd-interior .post-navigation-item {
+		flex: 0 0 auto;
+		width: 100%;
+	}
+
+	body.argon-xd-interior .post-navigation-next {
+		padding-left: 0;
+		text-align: left;
+	}
+
+	body.argon-xd-interior .post-navigation-pre {
+		padding-right: 0;
 	}
 }
 
 @media (max-width: 575px) {
-	body:not(.home):not(.front-page) #content {
+	body.argon-xd-interior {
+		--xd-card-pad-x: 18px;
+		--xd-card-pad-y: 20px;
+		--xd-card-radius: 18px;
+	}
+
+	body.argon-xd-interior #content {
 		padding-left: 14px;
 		padding-right: 14px;
 	}
 
-	body:not(.home):not(.front-page) .page-information-card,
-	body:not(.home):not(.front-page) #content .card:not(#footer) {
-		border-radius: 18px !important;
+	body.argon-xd-interior .page-information-card .card-body {
+		padding: 23px 20px 26px;
 	}
 
-	body:not(.home):not(.front-page) .page-information-card .card-body,
-	body:not(.home):not(.front-page) article.post {
-		padding: 25px 22px 29px;
-	}
-
-	body:not(.home):not(.front-page) article.post-preview-layout-2 {
+	body.argon-xd-interior article.post-preview-layout-2 {
 		display: block;
 		padding: 0;
 	}
 
-	body:not(.home):not(.front-page) article.post-preview-layout-2 .post-header.post-header-with-thumbnail {
-		border-radius: 18px 18px 0 0;
+	body.argon-xd-interior article.post-preview-layout-2 .post-header.post-header-with-thumbnail {
+		border-radius: var(--xd-card-radius) var(--xd-card-radius) 0 0;
 		width: 100%;
 	}
 
-	body:not(.home):not(.front-page) article.post-preview-layout-2 .post-content-container {
-		padding: 25px 22px 29px;
+	body.argon-xd-interior article.post-preview-layout-2 .post-thumbnail {
+		height: 210px;
+	}
+
+	body.argon-xd-interior article:not(.post-preview-layout-2) .post-header.post-header-with-thumbnail .post-thumbnail {
+		max-height: 210px;
+	}
+
+	body.argon-xd-interior.single .post-full .post-title,
+	body.argon-xd-interior.page .post-full .post-title {
+		font-size: 2rem;
+	}
+
+	/* 窄屏上代码块按字号缩小，避免每行都要横向拖动 */
+	body.argon-xd-interior .post-content pre {
+		font-size: .78rem;
+		padding: 14px 14px;
 	}
 }

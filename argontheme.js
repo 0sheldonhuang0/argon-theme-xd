@@ -472,13 +472,14 @@ if (argonConfig.headroom == "true"){
 }
 
 /*瀑布流布局*/
+var WATERFLOW_GAP = 10; // 横向列间距与纵向行间距共用这一个值，两轴才能一致
 function waterflowInit() {
 	if (argonConfig.waterflow_columns == "1") {
 		return;
 	}
 	$("#main.article-list img").each(function(index, ele){
 		ele.onload = function(){
-			waterflowInit();
+			scheduleWaterflow();
 		}
 	});
 	let columns;
@@ -523,37 +524,72 @@ function waterflowInit() {
 	}
 	let $items = $container.find("article.post:not(.no-results), .shuoshuo-preview-container");
 	columns = Math.max(Math.min(columns, $items.length), 1);
+	let containerWidth = 0;
 	if (columns == 1) {
 		$container.removeClass("waterflow");
 		$items.css("transition", "").css("position", "").css("width", "").css("top", "").css("left", "").css("margin", "");
 		$(".waterflow-placeholder").remove();
 	}else{
 		$container.addClass("waterflow");
+		/* 列宽用实测像素而不是 calc(百分比)，避免亚像素累积导致左右间距和上下间距对不上 */
+		containerWidth = $container[0].getBoundingClientRect().width;
+		let itemWidth = (containerWidth - WATERFLOW_GAP * (columns - 1)) / columns;
 		$items.each(function(index, item) {
 			let $item = $(item);
 			$item.css("transition", "none")
 				.css("position", "absolute")
-				.css("width", "calc(" + (100 / columns) + "% - " + (10 * (columns - 1) / columns) + "px)").css("margin", 0);
-			let itemHeight = $item.outerHeight() + 10;
+				.css("width", itemWidth + "px")
+				.css("margin", 0);
 			let pos = getMinHeightPosition();
-			$item.css("top", heights[getMinHeightPosition()] + "px")
-				.css("left", (pos * $item.outerWidth() + 10 * pos) + "px");
-			heights[pos] += itemHeight;
+			$item.css("top", heights[pos] + "px")
+				.css("left", (pos * (itemWidth + WATERFLOW_GAP)) + "px");
+			heights[pos] += $item.outerHeight() + WATERFLOW_GAP;
 		});
 	}
+	/* heights 里每张卡都多算了一个 GAP，占位高度要减掉，否则底部多出一段空白 */
+	let placeholderHeight = Math.max(getMaxHeight() - WATERFLOW_GAP, 0);
 	if ($(".waterflow-placeholder").length) {
-		$(".waterflow-placeholder").css("height", getMaxHeight() + "px");
+		$(".waterflow-placeholder").css("height", placeholderHeight + "px");
 	}else{
-		$container.prepend("<div class='waterflow-placeholder' style='height: " + getMaxHeight() +"px;'></div>");
+		$container.prepend("<div class='waterflow-placeholder' style='height: " + placeholderHeight + "px;'></div>");
+	}
+	/* 占位高度变化会让滚动条出现或消失，容器宽度随之变化 15px 左右，
+	   刚才按旧宽度量到的高度就作废了。宽度对不上就再排一次，直到收敛。 */
+	if (columns > 1 && Math.abs($container[0].getBoundingClientRect().width - containerWidth) > 0.5) {
+		scheduleWaterflow();
 	}
 }
-waterflowInit();
-if (argonConfig.waterflow_columns != "1") {
-	$(window).resize(function(){
+
+/* 合并同一帧内的多次重排请求 */
+var waterflowScheduled = false;
+function scheduleWaterflow(){
+	if (waterflowScheduled) {
+		return;
+	}
+	waterflowScheduled = true;
+	window.requestAnimationFrame(function(){
+		waterflowScheduled = false;
 		waterflowInit();
 	});
+}
+
+waterflowInit();
+if (argonConfig.waterflow_columns != "1") {
+	/* 首次执行时字体和图片还没就位，卡片高度会偏大，排版完纵向就会出现十几像素的误差。
+	   页面的 load、字体就绪、卡片尺寸变化都要重排一次。 */
+	$(window).on("load", scheduleWaterflow);
+	$(window).resize(scheduleWaterflow);
+	if (document.fonts && document.fonts.ready) {
+		document.fonts.ready.then(scheduleWaterflow);
+	}
+	if (window.ResizeObserver) {
+		let waterflowObserver = new ResizeObserver(scheduleWaterflow);
+		$("#main.article-list article.post, #main.article-list .shuoshuo-preview-container").each(function(){
+			waterflowObserver.observe(this);
+		});
+	}
 	new MutationObserver(function(mutations, observer){
-		waterflowInit();
+		scheduleWaterflow();
 	}).observe(document.querySelector("#primary"), {
 		'childList': true
 	});
@@ -1842,6 +1878,13 @@ if ($("html").hasClass("banner-as-cover")){
 }
 
 /*Pjax*/
+function syncArgonXdPageContext(){
+	let isFrontPage = document.querySelector(".front-page-main") !== null;
+	document.body.classList.toggle("argon-xd-front-page", isFrontPage);
+	document.body.classList.toggle("argon-xd-interior", !isFrontPage);
+}
+syncArgonXdPageContext();
+
 var pjaxScrollTop = 0, pjaxLoading = false;
 $.pjax.defaults.timeout = 10000;
 $.pjax.defaults.container = ['#primary', '#leftbar_part1_menu', '#leftbar_part2_inner', '.page-information-card-container', '#rightbar', '#wpadminbar'];
@@ -1900,6 +1943,7 @@ $(document).pjax("a[href]:not([no-pjax]):not(.no-pjax):not([target='_blank']):no
 	}
 }).on('pjax:complete', function() {
 	pjaxLoading = false;
+	syncArgonXdPageContext();
 	NProgress.inc();
 	try{
 		if (MathJax != undefined){

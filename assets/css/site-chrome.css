@@ -5,6 +5,13 @@ body {
 	overflow-x: hidden;
 }
 
+/* 左侧栏已从模板（sidebar.php）里移除，站点是单栏布局。
+   这里再兜一层，防止缓存页面或旧模板残留的侧栏露出来。 */
+#leftbar,
+#sidebar_mask {
+	display: none !important;
+}
+
 #navbar-main {
 	background: var(--themecolor) !important;
 	box-shadow: 0 1px 0 rgba(255, 255, 255, .1);
@@ -54,83 +61,101 @@ body {
 	color: rgba(255, 255, 255, .9);
 }
 
+/* 页脚排版：两档字号、两种字重、一个行高、一个间距。
+   所有纵向距离都是 14px，所有行盒都是 24px，不靠 margin 叠出视觉节奏。 */
 #footer {
+	--ft-fs: .875rem;      /* 唯一正文字号（14px），社交行、友链、备案都用它 */
+	--ft-fs-lead: 1rem;    /* 唯一大号（16px），只给副标题 */
+	--ft-line: 24px;       /* 唯一行高，正文和副标题共用 */
+	--ft-gap: 14px;        /* 唯一样式间距：行与行、块与块都是它 */
+	--ft-text: #9aa6b8;
+	--ft-muted: #7d8899;
+	--ft-strong: #e8edf5;
+	animation: none !important;
 	background: #111827 !important;
 	border-radius: 0;
 	box-shadow: none !important;
+	box-sizing: border-box;
 	clear: both;
-	color: #aeb7c8;
+	color: var(--ft-text);
 	float: none;
-	left: 50%;
-	margin: 0;
+	font-size: var(--ft-fs);
+	font-weight: 400;
+	line-height: var(--ft-line);
+	/* 用负外边距做通栏：父级是居中定宽容器，left/transform 会算错偏移造成横向溢出。 */
+	margin: 0 calc(50% - 50vw);
 	max-width: none;
-	padding: 52px max(32px, calc((100vw - 1116px) / 2));
-	position: relative;
+	padding: 44px max(32px, calc((100vw - 1116px) / 2));
+	position: static;
 	text-align: left;
-	transform: translateX(-50%);
-	width: 100vw;
+	transform: none;
+	width: auto;
 }
 
-#footer > strong:first-child {
+/* 副标题：只加粗提亮，不放大、不斜体，和正文同一个行盒 */
+#footer > strong {
 	color: #fff;
 	display: block;
-	font-size: 1.05rem;
-	letter-spacing: .04em;
-	margin-bottom: 24px;
+	font-size: var(--ft-fs-lead);
+	font-weight: 600;
+	letter-spacing: .01em;
+	margin: 0 0 var(--ft-gap);
 }
 
-.site-socials {
-	align-items: center;
+#footer > strong em {
+	font-style: normal;
+}
+
+.site-socials {	align-items: center;
 	border-bottom: 1px solid rgba(255, 255, 255, .1);
 	display: flex;
-	gap: 18px;
-	margin-bottom: 28px;
-	padding-bottom: 26px;
+	gap: var(--ft-gap);
+	margin: 0 0 var(--ft-gap);
+	padding: 0 0 var(--ft-gap);
 }
 
 .site-socials-label {
-	color: #8995a9;
-	font-size: .9rem;
-	font-weight: 650;
+	color: var(--ft-muted);
+	flex: none;
+	font-size: var(--ft-fs);
 	white-space: nowrap;
 }
 
 .site-socials-row {
 	align-items: center;
+	column-gap: 22px;
 	display: flex;
-	gap: 18px;
+	flex-wrap: wrap;
 	min-width: 0;
+	row-gap: 8px;
 }
 
 .site-social-account {
 	align-items: center;
-	color: #d9deea;
+	color: var(--ft-muted);
 	display: inline-flex;
-	font-size: 1.04rem;
+	font-size: var(--ft-fs);
 	gap: 6px;
 	white-space: nowrap;
 }
 
+/* 图标用 em，随字号一起缩放，不再单独定 22px 撑高行盒 */
 .site-social-account img {
-	height: 22px;
+	height: 1.15em;
 	object-fit: contain;
-	width: 22px;
+	width: 1.15em;
 }
 
-.site-social-account span {
-	color: #929db0;
-	font-size: .9rem;
+.site-social-account span,
+.site-social-account small {
+	color: var(--ft-muted);
+	font-size: inherit;
 }
 
 .site-social-account strong {
-	color: #fff;
-	font-size: 1.12rem;
-	font-weight: 650;
-}
-
-.site-social-account small {
-	color: #78859a;
-	font-size: .82rem;
+	color: var(--ft-strong);
+	font-size: inherit;
+	font-weight: 600;
 }
 
 .site-social-account:hover {
@@ -138,21 +163,34 @@ body {
 	text-decoration: none;
 }
 
-#footer .site-socials ~ p:first-of-type {
-	display: none;
+/* 版权与备案信息来自「页脚 HTML」设置项，通常就是若干 <p>；
+   之前这里用 display:none 隐藏了社交栏后的第一个 p，导致整行版权消失。 */
+#footer p {
+	color: var(--ft-text);
+	font-size: var(--ft-fs);
+	font-weight: 400;
+	line-height: var(--ft-line);
+	margin: 0;
 }
 
-#footer p {
-	line-height: 1.9;
-	margin: 14px 0;
+#footer p + p {
+	margin-top: var(--ft-gap);
 }
 
 #footer a {
-	color: #d9deea;
+	color: var(--ft-strong);
+	text-decoration: none;
+}
+
+/* 备案号这类「中文 + 长数字」当整体换行，不要断在数字中间 */
+#footer p a {
+	display: inline-block;
 }
 
 #footer a:hover {
 	color: #fff;
+	text-decoration: underline;
+	text-underline-offset: 2px;
 }
 
 #footer button,
@@ -160,14 +198,15 @@ body {
 	display: none !important;
 }
 
+/* 备案图标用 em 定尺寸并对齐基线，避免 24px 的图把这一行撑得比别的行高 */
 #footer img[src*="icon-beian"] {
 	display: inline-block !important;
 	float: none !important;
-	height: 24px !important;
-	margin: 0 6px 0 10px !important;
+	height: 1.15em !important;
+	margin: 0 .3em !important;
 	object-fit: contain;
-	vertical-align: middle;
-	width: 24px !important;
+	vertical-align: -.18em;
+	width: 1.15em !important;
 }
 
 @media (max-width: 575px) {
@@ -177,17 +216,18 @@ body {
 	}
 
 	#footer {
-		padding: 42px 20px;
+		padding: 36px 20px;
 	}
 
 	.site-socials {
-		align-items: start;
+		align-items: stretch;
 		flex-direction: column;
-		gap: 12px;
 	}
 
 	.site-socials-row {
-		flex-wrap: wrap;
-		gap: 10px 16px;
+		display: grid;
+		gap: 8px;
+		grid-template-columns: 1fr;
+		width: 100%;
 	}
 }

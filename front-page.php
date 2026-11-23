@@ -5,14 +5,6 @@
  * @package Argon
  */
 
-$front_page_style_path = get_template_directory() . '/assets/css/front-page.css';
-wp_enqueue_style(
-	'argon-front-page',
-	get_template_directory_uri() . '/assets/css/front-page.css',
-	array( 'style' ),
-	file_exists( $front_page_style_path ) ? filemtime( $front_page_style_path ) : $GLOBALS['theme_version']
-);
-
 $posts_page_id = (int) get_option( 'page_for_posts' );
 $latest_posts  = get_posts(
 	array(
@@ -30,6 +22,7 @@ get_header();
 
 <div id="primary" class="content-area front-page-content-area">
 	<main id="main" class="site-main front-page-main" role="main">
+		<h1 class="front-page-sr-title"><?php bloginfo( 'name' ); ?></h1>
 		<section class="front-page-hub" aria-label="<?php esc_attr_e( '精选项目', 'argon' ); ?>">
 			<div class="front-page-wrap">
 				<div class="front-page-section-heading">
@@ -62,5 +55,7 @@ get_header();
 				</nav>
 			</div>
 		</section>
+	</main>
+</div>
 
 <?php get_footer(); ?>

@@ -45,24 +45,25 @@
 	</header>
 
 	<?php
-		$trim_words_count = get_option('argon_trim_words_count', 175);
+		$show_preview = (int) get_option('argon_trim_words_count', 175) > 0;
 	?>
-	<?php if ($trim_words_count > 0){ ?>
+	<?php if ($show_preview){ ?>
 		<div class="post-content">
 			<?php
-				if (get_option("argon_hide_shortcode_in_preview") == 'true'){
-					$preview = wp_trim_words(do_shortcode(get_the_content('...')), $trim_words_count);
+				if ($post -> post_excerpt){
+					// 手写摘要按原样输出，不再按句数截断
+					$preview = $post -> post_excerpt;
 				}else{
-					$preview = wp_trim_words(get_the_content('...'), $trim_words_count);
+					$preview_source = get_option("argon_hide_shortcode_in_preview") == 'true'
+						? do_shortcode(get_the_content('...'))
+						: get_the_content('...');
+					$preview = argon_xd_get_preview_sentences($preview_source, 2);
 				}
 				if (post_password_required()){
 					$preview = __("这篇文章受密码保护，输入密码才能阅读", 'argon');
 				}
 				if ($preview == ""){
 					$preview = __("这篇文章没有摘要", 'argon');
-				}
-				if ($post -> post_excerpt){
-					$preview = $post -> post_excerpt;
 				}
 				echo $preview;
 			?>

@@ -1709,10 +1709,14 @@ window.pjaxLoaded = function(){
 						</td>
 					</tr>
 					<tr>
-						<th><label><?php _e('文章内容预览截取字数', 'argon');?></label></th>
+						<th><label><?php _e('文章列表摘要', 'argon');?></label></th>
 						<td>
-							<input type="number" name="argon_trim_words_count" min="0" max="1000" value="<?php echo get_option('argon_trim_words_count', 175); ?>"/>
-							<p class="description"><?php _e('设为 0 来隐藏文章内容预览', 'argon');?></p>
+							<?php $argon_trim_words_count = (int) get_option('argon_trim_words_count', 175); ?>
+							<select name="argon_trim_words_count">
+								<option value="175" <?php if ($argon_trim_words_count > 0){echo 'selected';} ?>><?php _e('显示前两句', 'argon');?></option>
+								<option value="0" <?php if ($argon_trim_words_count === 0){echo 'selected';} ?>><?php _e('隐藏摘要', 'argon');?></option>
+							</select>
+							<p class="description"><?php _e('摘要在完整句号、问号或感叹号处结束。', 'argon');?></p>
 						</td>
 					</tr>
 					<tr>

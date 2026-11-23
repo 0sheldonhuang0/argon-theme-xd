@@ -9,6 +9,48 @@ function theme_slug_setup() {
 }
 add_action('after_setup_theme','theme_slug_setup');
 
+function argon_xd_body_class( $classes ) {
+	$classes[] = is_front_page() ? 'argon-xd-front-page' : 'argon-xd-interior';
+	return $classes;
+}
+add_filter( 'body_class', 'argon_xd_body_class' );
+
+/**
+ * 输出后台「页脚 HTML」设置项的内容。
+ *
+ * 页脚社交卡片里已经有「微信公众号：晓栋XD」，后台设置里重复的公众号引导语
+ * 和二维码弹窗（按钮 / dialog / 脚本）整段去掉，避免同一屏出现两遍关注信息。
+ * 只删命中关键词的段落，友链、备案等其他内容原样保留；
+ * 后台把那一段删掉之后，这里的规则匹配不到东西，自然失效。
+ */
+function argon_xd_footer_html() {
+	$html = (string) get_option( 'argon_footer_html' );
+	if ( '' === trim( $html ) ) {
+		return '';
+	}
+
+	$keywords = '欢迎关注微信公众号|获取二维码扫一扫|myDialog';
+
+	// 情况一：引导语和二维码代码同在一个段落里，整段删掉。
+	$html = preg_replace( '#<p\b[^>]*>(?:(?!</p>).)*?(?:' . $keywords . ').*?</p>#is', '', $html );
+
+	// 情况二：没有段落包裹的裸文本，按行剔除。
+	$lines = preg_split( '/\R/u', $html );
+	if ( is_array( $lines ) ) {
+		foreach ( $lines as $index => $line ) {
+			if ( preg_match( '#(?:' . $keywords . ')#iu', $line ) ) {
+				unset( $lines[ $index ] );
+			}
+		}
+		$html = implode( "\n", $lines );
+	}
+
+	// 清理被删空后留下的空段落。
+	$html = preg_replace( '#<p\b[^>]*>(?:\s|&nbsp;)*</p>#i', '', $html );
+
+	return $html;
+}
+
 $argon_version = !(wp_get_theme() -> Template) ? wp_get_theme() -> Version : wp_get_theme(wp_get_theme() -> Template) -> Version;
 $GLOBALS['theme_version'] = $argon_version;
 $GLOBALS['assets_path'] = get_template_directory_uri();
@@ -366,6 +408,25 @@ function get_seo_description(){
 		return get_option('argon_seo_description');
 	}
 }
+
+// 文章列表摘要按完整句子截取，避免固定字数把句子拦腰截断。
+function argon_xd_get_preview_sentences($content, $sentence_count = 2){
+	$content = strip_shortcodes($content);
+	$content = wp_strip_all_tags($content, true);
+	$content = html_entity_decode($content, ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
+	$content = trim(preg_replace('/\s+/u', ' ', $content));
+	if ($content === ''){
+		return '';
+	}
+	// 中文按 。！？ 断句；英文 . ! ? 只在后面跟空白或结尾时断句，
+	// 避免把 3.5、v1.2 这类小数/版本号切开。
+	$sentences = preg_split('/(?<=[。！？])|(?<=[.!?])(?=\s|$)/u', $content, -1, PREG_SPLIT_NO_EMPTY);
+	if (!is_array($sentences) || count($sentences) === 0){
+		return $content;
+	}
+	return trim(implode('', array_slice($sentences, 0, max(1, (int) $sentence_count))));
+}
+
 //页面 Keywords
 function get_seo_keywords(){
 	if (is_single()){

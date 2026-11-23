@@ -123,6 +123,8 @@
 		wp_enqueue_style("site_chrome", get_template_directory_uri() . "/assets/css/site-chrome.css", array("style"), file_exists($site_chrome_style_path) ? filemtime($site_chrome_style_path) : $GLOBALS['theme_version']);
 		$site_content_style_path = get_template_directory() . "/assets/css/site-content.css";
 		wp_enqueue_style("site_content", get_template_directory_uri() . "/assets/css/site-content.css", array("site_chrome"), file_exists($site_content_style_path) ? filemtime($site_content_style_path) : $GLOBALS['theme_version']);
+		$front_page_style_path = get_template_directory() . "/assets/css/front-page.css";
+		wp_enqueue_style("argon-front-page", get_template_directory_uri() . "/assets/css/front-page.css", array("site_content"), file_exists($front_page_style_path) ? filemtime($front_page_style_path) : $GLOBALS['theme_version']);
 		if (get_option('argon_disable_googlefont') != 'true') {wp_enqueue_style("googlefont", "//fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Noto+Serif+SC:300,600&display=swap");}
 		wp_enqueue_script("argon_js_merged", $GLOBALS['assets_path'] . "/assets/argon_js_merged.js", null, $GLOBALS['theme_version']);
 		wp_enqueue_script("argonjs", $GLOBALS['assets_path'] . "/assets/js/argon.min.js", null, $GLOBALS['theme_version']);
