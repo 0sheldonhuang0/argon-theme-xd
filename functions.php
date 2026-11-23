@@ -1,6 +1,6 @@
 <?php
 if (version_compare( $GLOBALS['wp_version'], '4.4-alpha', '<' )) {
-	echo "<div style='background: #5e72e4;color: #fff;font-size: 30px;padding: 50px 30px;position: fixed;width: 100%;left: 0;right: 0;bottom: 0;z-index: 2147483647;'>" . __("Argon 主题不支持 Wordpress 4.4 以下版本，请更新 Wordpress", 'argon') . "</div>";
+	echo "<div style='background: #5e72e4;color: #fff;font-size: 30px;padding: 50px 30px;position: fixed;width: 100%;left: 0;right: 0;bottom: 0;z-index: 2147483647;'>" . __("Argon XD 主题不支持 WordPress 4.4 以下版本，请更新 WordPress", 'argon') . "</div>";
 }
 function theme_slug_setup() {
 	add_theme_support('title-tag');
@@ -11,33 +11,7 @@ add_action('after_setup_theme','theme_slug_setup');
 
 $argon_version = !(wp_get_theme() -> Template) ? wp_get_theme() -> Version : wp_get_theme(wp_get_theme() -> Template) -> Version;
 $GLOBALS['theme_version'] = $argon_version;
-$argon_assets_path = get_option("argon_assets_path");
-switch ($argon_assets_path) {
-    case "jsdelivr":
-	    $GLOBALS['assets_path'] = "https://cdn.jsdelivr.net/gh/solstice23/argon-theme@" . $argon_version;
-        break;
-    case "fastgit":
-	    $GLOBALS['assets_path'] = "https://raw.fastgit.org/solstice23/argon-theme/v" . $argon_version;
-        break;
-    case "sourcegcdn":
-	    $GLOBALS['assets_path'] = "https://gh.sourcegcdn.com/solstice23/argon-theme/v" . $argon_version;
-        break;
-	case "jsdelivr_gcore":
-	    $GLOBALS['assets_path'] = "https://gcore.jsdelivr.net/gh/solstice23/argon-theme@" . $argon_version;
-        break;
-	case "jsdelivr_fastly":
-	    $GLOBALS['assets_path'] = "https://fastly.jsdelivr.net/gh/solstice23/argon-theme@" . $argon_version;
-        break;
-	case "jsdelivr_cf":
-	    $GLOBALS['assets_path'] = "https://testingcf.jsdelivr.net/gh/solstice23/argon-theme@" . $argon_version;
-        break;
-	case "custom":
-		$GLOBALS['assets_path'] = preg_replace('/\/$/', '', get_option("argon_custom_assets_path"));
-		$GLOBALS['assets_path'] = preg_replace('/%theme_version%/', $argon_version, $GLOBALS['assets_path']);
-		break;
-    default:
-	    $GLOBALS['assets_path'] = get_bloginfo('template_url');
-}
+$GLOBALS['assets_path'] = get_template_directory_uri();
 
 //翻译 Hook
 function argon_locate_filter($locate){
@@ -120,64 +94,6 @@ if (version_compare($argon_last_version, $GLOBALS['theme_version'], '<' )){
 	update_option("argon_last_version", $GLOBALS['theme_version']);
 }
 
-
-//检测更新
-require_once(get_template_directory() . '/theme-update-checker/plugin-update-checker.php');
-$argon_update_source = get_option('argon_update_source');
-switch ($argon_update_source) {
-	case "stop":
-		break;
-    case "fastgit":
-	    $argonThemeUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-			'https://api.solstice23.top/argon/info.json?source=fastgit',
-			get_template_directory() . '/functions.php',
-			'argon'
-		);
-        break;
-    case "cfworker":
-	    $argonThemeUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-			'https://api.solstice23.top/argon/info.json?source=cfworker',
-			get_template_directory() . '/functions.php',
-			'argon'
-		);
-        break;
-	case "solstice23top":
-		$argonThemeUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-			'https://api.solstice23.top/argon/info.json?source=0',
-			get_template_directory() . '/functions.php',
-			'argon'
-		);
-		break;
-	case "github":
-    default:
-		$argonThemeUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
-			'https://raw.githubusercontent.com/solstice23/argon-theme/master/info.json',
-			get_template_directory() . '/functions.php',
-			'argon'
-		);
-}
-
-//初次使用时发送安装量统计信息 (数据仅用于统计安装量)
-function post_analytics_info(){
-	if(function_exists('file_get_contents')){
-		$contexts = stream_context_create(
-			array(
-				'http' => array(
-					'method'=>"GET",
-					'header'=>"User-Agent: ArgonTheme\r\n"
-				)
-			)
-		);
-		$result = file_get_contents('http://api.solstice23.top/argon_analytics/index.php?domain=' . urlencode($_SERVER['HTTP_HOST']) . '&version='. urlencode($GLOBALS['theme_version']), false, $contexts);
-		update_option('argon_has_inited', 'true');
-		return $result;
-	}else{
-		update_option('argon_has_inited', 'true');
-	}
-}
-if (get_option('argon_has_inited') != 'true'){
-	post_analytics_info();
-}
 //时区修正
 if (get_option('argon_enable_timezone_fix') == 'true'){
 	date_default_timezone_set('UTC');
@@ -199,7 +115,7 @@ function argon_widgets_init() {
 		array(
 			'name'          => __('右侧栏小工具', 'argon'),
 			'id'            => 'rightbar-tools',
-			'description'   => __( '右侧栏小工具 (在 "Argon 主题选项" 中选择 "三栏布局" 才会显示)', 'argon'),
+			'description'   => __( '右侧栏小工具 (在 "Argon XD 主题选项" 中选择 "三栏布局" 才会显示)', 'argon'),
 			'before_widget' => '<div id="%1$s" class="widget %2$s card shadow-sm bg-white border-0">',
 			'after_widget'  => '</div>',
 			'before_title'  => '<h6 class="font-weight-bold text-black">',
@@ -223,7 +139,7 @@ add_action('widgets_init', 'argon_widgets_init');
 function argon_add_admin_color(){
 	wp_admin_css_color(
 		'argon',
-		'Argon',
+		'Argon XD',
 		get_bloginfo('template_directory') . "/admin.css",
 		array("#5e72e4", "#324cdc", "#e8ebfb"),
 		array('base' => '#525f7f', 'focus' => '#5e72e4', 'current' => '#fff')
@@ -2004,19 +1920,6 @@ function upvote_shuoshuo(){
 }
 add_action('wp_ajax_upvote_shuoshuo' , 'upvote_shuoshuo');
 add_action('wp_ajax_nopriv_upvote_shuoshuo' , 'upvote_shuoshuo');
-//检测页面底部版权是否被修改
-function alert_footer_copyright_changed(){ ?>
-	<div class='notice notice-warning is-dismissible'>
-		<p><?php _e("警告：你可能修改了 Argon 主题页脚的版权声明，Argon 主题要求你至少保留主题的 Github 链接或主题的发布文章链接。", 'argon');?></p>
-	</div>
-<?php }
-function check_footer_copyright(){
-	$footer = file_get_contents(get_theme_root() . "/" . wp_get_theme() -> template . "/footer.php");
-	if ((strpos($footer, "github.com/solstice23/argon-theme") === false) && (strpos($footer, "solstice23.top") === false)){
-		add_action('admin_notices', 'alert_footer_copyright_changed');
-	}
-}
-check_footer_copyright();
 //颜色计算
 function rgb2hsl($R,$G,$B){
 	$r = $R / 255;
@@ -3074,7 +2977,7 @@ function argon_tinymce_add_plugin($plugins){
 //主题选项页面
 function themeoptions_admin_menu(){
 	/*后台管理面板侧栏添加选项*/
-	add_menu_page(__("Argon 主题设置", 'argon'), __("Argon 主题选项", 'argon'), 'edit_theme_options', basename(__FILE__), 'themeoptions_page');
+	add_menu_page(__("Argon XD 主题设置", 'argon'), __("Argon XD 主题选项", 'argon'), 'edit_theme_options', basename(__FILE__), 'themeoptions_page');
 }
 include_once(get_template_directory() . '/settings.php');
 	

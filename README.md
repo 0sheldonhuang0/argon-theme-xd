@@ -1,9 +1,9 @@
-![Argon](https://cdn.jsdelivr.net/gh/solstice23/cdn@master/argon_new_animate.svg)
+![Argon XD](https://cdn.jsdelivr.net/gh/solstice23/cdn@master/argon_new_animate.svg)
 
 **简体中文** | [繁體中文](README_tw.md) | [English](README_en.md) | [Russian](README_ru.md)
 
-# Argon-Theme
-Argon - 轻盈、简洁、美观的 WordPress 主题
+# Argon XD
+Argon XD - 为 xd.sh.cn 定制的 WordPress 主题
 
 Hexo 版本 : [github.com/solstice23/hexo-theme-argon](https://github.com/solstice23/hexo-theme-argon)
 

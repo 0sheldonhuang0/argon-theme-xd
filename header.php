@@ -119,6 +119,10 @@
 	<?php
 		wp_enqueue_style("argon_css_merged", $GLOBALS['assets_path'] . "/assets/argon_css_merged.css", null, $GLOBALS['theme_version']);
 		wp_enqueue_style("style", $GLOBALS['assets_path'] . "/style.css", null, $GLOBALS['theme_version']);
+		$site_chrome_style_path = get_template_directory() . "/assets/css/site-chrome.css";
+		wp_enqueue_style("site_chrome", get_template_directory_uri() . "/assets/css/site-chrome.css", array("style"), file_exists($site_chrome_style_path) ? filemtime($site_chrome_style_path) : $GLOBALS['theme_version']);
+		$site_content_style_path = get_template_directory() . "/assets/css/site-content.css";
+		wp_enqueue_style("site_content", get_template_directory_uri() . "/assets/css/site-content.css", array("site_chrome"), file_exists($site_content_style_path) ? filemtime($site_content_style_path) : $GLOBALS['theme_version']);
 		if (get_option('argon_disable_googlefont') != 'true') {wp_enqueue_style("googlefont", "//fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Noto+Serif+SC:300,600&display=swap");}
 		wp_enqueue_script("argon_js_merged", $GLOBALS['assets_path'] . "/assets/argon_js_merged.js", null, $GLOBALS['theme_version']);
 		wp_enqueue_script("argonjs", $GLOBALS['assets_path'] . "/assets/js/argon.min.js", null, $GLOBALS['theme_version']);
@@ -295,7 +299,10 @@
 							$toolbar_title = '';
 						}
 					?>
-					<a class="navbar-brand navbar-title" href="<?php bloginfo('url'); ?>"><?php echo $toolbar_title;?></a>
+					<a class="navbar-brand navbar-title site-header-brand" href="<?php bloginfo('url'); ?>">
+						<img class="site-header-avatar" src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/xd-memoji.jpg' ); ?>" alt="" aria-hidden="true">
+						<span><?php echo $toolbar_title;?></span>
+					</a>
 				</div>
 				<div class="navbar-collapse collapse" id="navbar_global">
 					<div class="navbar-collapse-header">
