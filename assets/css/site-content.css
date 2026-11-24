@@ -14,8 +14,6 @@ body.argon-xd-interior {
 }
 
 body.argon-xd-interior #banner,
-body.argon-xd-interior #leftbar,
-body.argon-xd-interior #sidebar_mask,
 body.argon-xd-interior #open_sidebar,
 body.argon-xd-interior #fabtn_open_sidebar {
 	display: none !important;
@@ -46,6 +44,467 @@ body.argon-xd-interior.page {
 	--xd-shell-width: 920px;
 	--xd-post-pad-x: calc(var(--xd-card-pad-x) + 8px);
 	--xd-post-pad-y: calc(var(--xd-card-pad-y) + 6px);
+}
+
+/* 文章页 / 单页在大屏上排成两栏：左侧栏 300px + 正文自适应。
+   目录栏窄一分，正文就宽一分，所以正文栏不再写死宽度。
+   1200px 以下回到单栏（#leftbar 由 site-chrome.css 隐藏）。 */
+@media (min-width: 1200px) {
+	/* Argon 给 body 写了 overflow-x:hidden —— 这会把 body 变成滚动容器，
+	   于是 position:sticky 的参照物成了「永不滚动的 body」，侧栏跟着页面滚走。
+	   clip 同样能裁掉横向溢出，但不会生成滚动容器，sticky 才生效；
+	   老浏览器不认 clip 时该声明失效，退回 Argon 的 hidden，不影响原有行为。 */
+	body.argon-xd-interior.single,
+	body.argon-xd-interior.page {
+		overflow-x: clip;
+		overflow-y: visible;
+	}
+
+	body.argon-xd-interior.single #content,
+	body.argon-xd-interior.page #content {
+		column-gap: 28px;
+		display: grid;
+		grid-template-columns: 300px minmax(0, 1fr);
+		row-gap: 0;
+	}
+
+	/* #leftbar 只负责占住第一列：它被拉伸到整行高（= 正文高度），
+	   真正的 sticky 交给里面的 .xd-leftbar-inner。
+	   原因是 Chrome 把 grid 里 sticky 元素的夹紧边界算成 grid 容器（#content），
+	   而 #content 把页脚也包了进去，滚到底时侧栏就压在页脚上；
+	   换成内层 sticky，夹紧边界变成 #leftbar 自身（正文高度），到正文结束就停。 */
+	body.argon-xd-interior.single #leftbar,
+	body.argon-xd-interior.page #leftbar {
+		display: block !important;
+		float: none;
+		grid-column: 1;
+		grid-row: 1;
+		margin: 0;
+		max-height: none;
+		overflow: visible;
+		padding: 0;
+		position: static;
+		width: 300px;
+	}
+
+	/* top 和 #content 的 94px 上内边距一致：否则 sticky 的 top 小于自然位置，
+	   首屏会把侧栏往上顶，和右侧文章卡对不齐。 */
+	body.argon-xd-interior.single #leftbar .xd-leftbar-inner,
+	body.argon-xd-interior.page #leftbar .xd-leftbar-inner {
+		max-height: calc(100vh - 118px);
+		overflow-y: auto;
+		position: sticky;
+		top: 94px;
+	}
+
+	/* 长目录 + 5 条推荐会超出视口高度，整栏自己滚。默认滚动条在 300px 的
+	   窄栏里很扎眼，收窄成 4px 的细条，轨道透明。 */
+	body.argon-xd-interior.single #leftbar .xd-leftbar-inner,
+	body.argon-xd-interior.page #leftbar .xd-leftbar-inner {
+		scrollbar-color: rgba(50, 50, 93, .18) transparent;
+		/* 预留滚动条位置：目录长短变化时卡片宽度不会跳 4px */
+		scrollbar-gutter: stable;
+		scrollbar-width: thin;
+	}
+
+	body.argon-xd-interior.single #leftbar .xd-leftbar-inner::-webkit-scrollbar,
+	body.argon-xd-interior.page #leftbar .xd-leftbar-inner::-webkit-scrollbar {
+		width: 4px;
+	}
+
+	body.argon-xd-interior.single #leftbar .xd-leftbar-inner::-webkit-scrollbar-track,
+	body.argon-xd-interior.page #leftbar .xd-leftbar-inner::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	body.argon-xd-interior.single #leftbar .xd-leftbar-inner::-webkit-scrollbar-thumb,
+	body.argon-xd-interior.page #leftbar .xd-leftbar-inner::-webkit-scrollbar-thumb {
+		background: rgba(50, 50, 93, .18);
+		border-radius: 2px;
+	}
+
+	html.darkmode body.argon-xd-interior.single #leftbar .xd-leftbar-inner::-webkit-scrollbar-thumb,
+	html.darkmode body.argon-xd-interior.page #leftbar .xd-leftbar-inner::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, .22);
+	}
+
+	body.argon-xd-interior.single #primary,
+	body.argon-xd-interior.page #primary {
+		float: none;
+		grid-column: 2;
+		grid-row: 1;
+		margin: 0;
+		max-width: none;
+		min-width: 0;
+		width: 100%;
+	}
+
+	body.argon-xd-interior.single .page-information-card-container,
+	body.argon-xd-interior.page .page-information-card-container {
+		grid-column: 2;
+		max-width: none;
+	}
+
+	/* 整栏已经是 sticky，原来 part2 单独 fixed 的那套滚动逻辑要关掉，
+	   否则滚动时目录卡会脱离左栏、宽度被写死 240px。 */
+	body.argon-xd-interior.single #leftbar_part2.sticky,
+	body.argon-xd-interior.page #leftbar_part2.sticky {
+		position: static !important;
+		top: auto !important;
+		width: auto !important;
+	}
+
+	/* 目录卡现在是左栏第一张，清掉 Argon 为「banner 卡之后」留的 10px 上外边距；
+	   卡片之间的 18px 由 .xd-leftbar-inner > .card + .card 统一给。 */
+	body.argon-xd-interior.single #leftbar_part2,
+	body.argon-xd-interior.page #leftbar_part2 {
+		margin-top: 0;
+	}
+
+	/* 目录不再单独滚动（原来 max-height:100vh-110px），整栏统一滚动，
+	   两张卡才不会一个滚一个不滚。 */
+	body.argon-xd-interior.single #leftbar_part2_inner,
+	body.argon-xd-interior.page #leftbar_part2_inner {
+		max-height: none;
+		overflow: visible;
+		padding: 16px 18px 18px;
+	}
+
+	/* 页脚在 #content 里面（footer.php 最后才闭合 #content），
+	   不占满整行就会被塞进第一列 300px，通栏负边距算出来的居中位置也就错了。 */
+	body.argon-xd-interior.single #content > #footer,
+	body.argon-xd-interior.page #content > #footer {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+
+	/* 正文底部那块「推荐文章」和左栏第三张卡是同一件事，大屏上重复了。
+	   只在左栏真的出现的宽度隐藏；1200px 以下没有左栏，手机上照样显示。 */
+	body.argon-xd-interior.single .related-posts {
+		display: none;
+	}
+}
+
+/* ---- 左侧栏卡片：文章目录 / 推荐文章 ----
+   统一的三件事：卡片内边距、卡片头部、列表行高。侧栏只有 300px 宽，
+   靠内边距和一条细分割线撑住层次，不再用小号灰字当标题。 */
+.xd-leftbar-inner > .card + .card {
+	margin-top: 18px;
+}
+
+/* 正文卡是 24px 圆角，300px 宽的侧栏卡用 24px 会圆得发飘，缩一档 */
+body.argon-xd-interior #leftbar .card {
+	border-radius: 18px !important;
+}
+
+.xd-leftbar-card-body {
+	padding: 16px 18px 18px;
+}
+
+/* 卡片头部：15px 深色，底部一条 1px 细线收口。
+   之前用小号灰字 + 大字距，对比度太低，看着像注释而不是标题。 */
+.xd-leftbar-card-title {
+	border-bottom: 1px solid #f1f4f8;
+	color: #172b4d;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: .01em;
+	line-height: 1.4;
+	margin: 0 0 6px;
+	padding-bottom: 12px;
+}
+
+/* 目录：不画整列引导线（那会把条目文字推进 12px，和卡片标题错开一段），
+   改成条目文字与卡片标题同一条左边缘；悬停底色向左出血到卡片边，
+   当前项在最左侧画一条 2px 主题色，效果跟竖线目录一样但每行都对齐。 */
+#leftbar_catalog {
+	margin-left: 0;
+	width: 100%;
+}
+
+#leftbar_catalog > ul {
+	margin: 0;
+	padding: 2px 0 0;
+}
+
+#leftbar_catalog .index-link {
+	border-left: 0;
+	border-radius: 0 6px 6px 0;
+	color: #4b5875;
+	font-size: 14px;
+	line-height: 1.6;
+	/* 左右各出血 10px：文字仍落在卡片标题的同一左边缘，悬停底色
+	   也不会只贴着文字缩在中间。Argon 给这类链接写了 width:100%，
+	   出血必须连宽度一起加，否则右边会短一截。 */
+	margin-left: -10px;
+	padding: 4px 10px;
+	position: relative;
+	width: calc(100% + 20px);
+}
+
+#leftbar_catalog .index-link:hover {
+	background: #f2f5fb;
+	color: #32325d;
+}
+
+#leftbar_catalog .index-item.current > .index-link {
+	color: var(--themecolor);
+	font-weight: 600;
+}
+
+#leftbar_catalog .index-item.current > .index-link::before {
+	background: var(--themecolor);
+	border-radius: 0 2px 2px 0;
+	bottom: 2px;
+	content: "";
+	left: 1px;
+	position: absolute;
+	top: 2px;
+	width: 2px;
+}
+
+#leftbar_catalog .index-subItem-box .index-item {
+	padding-left: 12px;
+}
+
+/* 目录编号（1 / 1.1 / 1.1.1），由 argontheme.js 的 xdCatalogNumber() 写入。
+   定宽 + 右对齐：一位数和两位数的序号占同样宽度，后面的标题文字才能对齐成一条竖线；
+   子级的 12px 缩进来自上面的 .index-item，编号不会把缩进顶掉。 */
+#leftbar_catalog .xd-catalog-num {
+	color: #a3aec2;
+	display: inline-block;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	margin-right: 6px;
+	min-width: 1.7em;
+	/* 点击要落回 <a> 上，headIndex 的点击代理只认 .index-link */
+	pointer-events: none;
+	text-align: right;
+	transition: color .2s ease;
+}
+
+#leftbar_catalog .index-item.current > .index-link .xd-catalog-num {
+	color: var(--themecolor);
+}
+
+/* 推荐列表：序号 + 标题 + 日期三行块，序号和标题首行基线对齐。
+   悬停时整行（含序号）一起浮起，可点面积比只有文字大。 */
+.xd-leftbar-post-list {
+	list-style: none;
+	margin: 0;
+	padding: 6px 0 0;
+}
+
+.xd-leftbar-post {
+	align-items: flex-start;
+	border-radius: 8px;
+	display: flex;
+	gap: 10px;
+	margin: 0 -8px;
+	padding: 6px 8px;
+	transition: background-color .2s ease;
+}
+
+.xd-leftbar-post + .xd-leftbar-post {
+	margin-top: 2px;
+}
+
+.xd-leftbar-post:hover {
+	background: #f2f5fb;
+}
+
+.xd-leftbar-post-index {
+	color: #b6c0d0;
+	flex: none;
+	font-size: 12px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: 22.4px;           /* = 14px × 1.6，跟标题首行同高 */
+	width: 16px;
+}
+
+.xd-leftbar-post:hover .xd-leftbar-post-index {
+	color: var(--themecolor);
+}
+
+.xd-leftbar-post-link {
+	color: #3d4b65;
+	display: block;
+	flex: 1 1 auto;
+	min-width: 0;
+	text-decoration: none;
+}
+
+.xd-leftbar-post-link:hover {
+	color: #172b4d;
+	text-decoration: none;
+}
+
+.xd-leftbar-post-title {
+	display: -webkit-box;
+	font-size: 14px;
+	line-height: 1.6;
+	overflow: hidden;
+	/* 换行时避免把最后一个字单独挤到第二行（Chrome / Safari 支持，其余浏览器按普通换行） */
+	text-wrap: pretty;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.xd-leftbar-post-date {
+	color: #9aa5b8;
+	display: block;
+	font-size: 12px;
+	line-height: 1.5;
+	margin-top: 2px;
+}
+
+html.darkmode .xd-leftbar-card-title {
+	border-bottom-color: rgba(255, 255, 255, .08);
+	color: #e3e8f0;
+}
+
+html.darkmode #leftbar_catalog .index-link {
+	color: #b9c2d2;
+}
+
+html.darkmode #leftbar_catalog .index-link:hover,
+html.darkmode .xd-leftbar-post:hover {
+	background: rgba(255, 255, 255, .05);
+}
+
+html.darkmode #leftbar_catalog .index-link:hover {
+	color: #e9edf4;
+}
+
+html.darkmode .xd-leftbar-post-index {
+	color: #6f7a8c;
+}
+
+html.darkmode .xd-leftbar-post-link {
+	color: #c2cad8;
+}
+
+html.darkmode .xd-leftbar-post-link:hover {
+	color: #fff;
+}
+
+html.darkmode .xd-leftbar-post-date {
+	color: #78859a;
+}
+
+/* ---- 联系方式卡 ----
+   和页脚共用一份 markup（functions.php 的 argon_xd_social_accounts），
+   页脚是深底横排的一行，这里是 300px 卡片里的四行列表：
+   「图标 + 平台名 …… 账号」，账号靠右对齐，像一张名片而不是四个小方块。 */
+.xd-leftbar-inner .site-socials {
+	border: 0;
+	display: block;
+	margin: 0;
+	padding: 0;
+}
+
+/* 卡片标题已经写了「联系方式」，页脚那句「关注我」在这里是重复 */
+.xd-leftbar-inner .site-socials-label {
+	display: none;
+}
+
+.xd-leftbar-inner .site-socials-row {
+	display: grid;
+	padding-top: 4px;
+	row-gap: 2px;
+}
+
+.xd-leftbar-inner .site-social-account {
+	align-items: center;
+	border-radius: 8px;
+	color: #4b5875;
+	column-gap: 8px;
+	display: grid;
+	font-size: 13px;
+	grid-template-columns: 14px auto minmax(0, 1fr);
+	line-height: 1.5;
+	/* 左右各出血 8px，和推荐列表的悬停范围一致 */
+	margin: 0 -8px;
+	padding: 5px 8px;
+	transition: background-color .2s ease;
+	/* 页脚那份写死了 nowrap，窄栏里要允许账号换行 */
+	white-space: normal;
+}
+
+.xd-leftbar-inner .site-social-account:hover {
+	background: #f2f5fb;
+	color: #172b4d;
+	text-decoration: none;
+}
+
+.xd-leftbar-inner .site-social-account img {
+	height: 14px;
+	width: 14px;
+}
+
+/* 抖音图标本身是白色（给页脚深色底画的），放到浅色卡片上会看不见，
+   直接把白色反成近黑；深色模式里卡片本来就是深底，白色正好，撤回滤镜。 */
+.xd-leftbar-inner .site-social-account img[src*="social-douyin"] {
+	filter: invert(1);
+}
+
+html.darkmode .xd-leftbar-inner .site-social-account img[src*="social-douyin"] {
+	filter: none;
+}
+
+.xd-leftbar-inner .site-social-platform {
+	color: #5a6780;
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+/* 账号整体推到右边缘，四个平台的名字不同、账号长度也不同，
+   靠右才有一条能扫下来的竖线 */
+.xd-leftbar-inner .site-social-meta {
+	align-items: baseline;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 5px;
+	justify-content: flex-end;
+	min-width: 0;
+	text-align: right;
+}
+
+.xd-leftbar-inner .site-social-meta strong {
+	color: #172b4d;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.xd-leftbar-inner .site-social-meta small {
+	color: #9aa5b8;
+	font-size: 11px;
+}
+
+html.darkmode #leftbar_catalog .xd-catalog-num {
+	color: #6f7a8c;
+}
+
+html.darkmode .xd-leftbar-inner .site-social-account {
+	color: #b9c2d2;
+}
+
+html.darkmode .xd-leftbar-inner .site-social-account:hover {
+	background: rgba(255, 255, 255, .05);
+	color: #fff;
+}
+
+html.darkmode .xd-leftbar-inner .site-social-platform {
+	color: #a4aec0;
+}
+
+html.darkmode .xd-leftbar-inner .site-social-meta strong {
+	color: #e3e8f0;
+}
+
+html.darkmode .xd-leftbar-inner .site-social-meta small {
+	color: #78859a;
 }
 
 body.argon-xd-interior #main {
@@ -878,4 +1337,23 @@ html.darkmode .input-group.input-group-alternative:focus-within {
 		font-size: .78rem;
 		padding: 14px 14px;
 	}
+}
+
+/* ---- 首页身份兜底 ----
+   pjax 命中缓存（浏览器后退 / 前进）时，body class 可能来不及同步，留在文章页
+   那套 argon-xd-interior + single 上：#content 照两栏排，左栏虽然被首页规则隐藏，
+   第一列 300px 还占着，首页左边就空出一块。这里按首页身份把两栏压平。
+   特异性与上面的 .single 两栏规则相同，靠「写在后面 + !important」取胜。 */
+body.argon-xd-front-page.single #leftbar,
+body.argon-xd-front-page.page #leftbar,
+body.argon-xd-front-page.single #sidebar_mask,
+body.argon-xd-front-page.page #sidebar_mask {
+	display: none !important;
+}
+
+body.argon-xd-front-page.single #content,
+body.argon-xd-front-page.page #content {
+	column-gap: 0;
+	display: block !important;
+	grid-template-columns: none !important;
 }

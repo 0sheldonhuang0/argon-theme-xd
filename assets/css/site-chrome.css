@@ -5,11 +5,22 @@ body {
 	overflow-x: hidden;
 }
 
-/* 左侧栏已从模板（sidebar.php）里移除，站点是单栏布局。
-   这里再兜一层，防止缓存页面或旧模板残留的侧栏露出来。 */
-#leftbar,
-#sidebar_mask {
+/* 左侧栏只在文章页 / 单页的大屏两栏布局里出现（布局规则见 site-content.css）。
+   首页 hub、列表、瀑布流一律隐藏；1200px 以下也隐藏（原主题那套抽屉式侧栏
+   开关按钮已经被我们摘掉了，窄屏露出来会卡在半屏外）。模板里仍然输出这段
+   DOM，是为了 pjax 从首页点进文章时侧栏容器已经存在。 */
+body.argon-xd-front-page #leftbar,
+body.argon-xd-front-page #sidebar_mask,
+body.argon-xd-interior:not(.single):not(.page) #leftbar,
+body.argon-xd-interior:not(.single):not(.page) #sidebar_mask {
 	display: none !important;
+}
+
+@media (max-width: 1199px) {
+	#leftbar,
+	#sidebar_mask {
+		display: none !important;
+	}
 }
 
 #navbar-main {
@@ -146,10 +157,19 @@ body {
 	width: 1.15em;
 }
 
-.site-social-account span,
+.site-social-platform,
 .site-social-account small {
 	color: var(--ft-muted);
 	font-size: inherit;
+}
+
+/* 账号名 + 平台号收在一个 flex 里，两者之间仍是 6px，
+   和「图标 — 平台名 — 账号」的间距一致，换行时也不会拆开半截。 */
+.site-social-meta {
+	align-items: baseline;
+	display: inline-flex;
+	gap: 6px;
+	min-width: 0;
 }
 
 .site-social-account strong {
@@ -158,7 +178,8 @@ body {
 	font-weight: 600;
 }
 
-.site-social-account:hover {
+/* 深色页脚上悬停提亮到纯白；限定 #footer 范围，左侧栏那张浅色卡另有配色 */
+#footer .site-social-account:hover {
 	color: #fff !important;
 	text-decoration: none;
 }
@@ -219,12 +240,13 @@ body {
 		padding: 36px 20px;
 	}
 
-	.site-socials {
+	/* 手机页脚：一行横排挤不下四个平台，改成「关注我」在上、账号单列在下 */
+	#footer .site-socials {
 		align-items: stretch;
 		flex-direction: column;
 	}
 
-	.site-socials-row {
+	#footer .site-socials-row {
 		display: grid;
 		gap: 8px;
 		grid-template-columns: 1fr;

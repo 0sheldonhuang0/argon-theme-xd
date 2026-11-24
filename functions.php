@@ -51,6 +51,124 @@ function argon_xd_footer_html() {
 	return $html;
 }
 
+/**
+ * 社交账号 / 联系方式：微信公众号、抖音、小红书、Bilibili。
+ *
+ * 页脚和左侧栏共用这一份 markup，样式在两种上下文里各写一套——
+ * 页脚是深色底的一行横排，左侧栏 300px 卡片里是四行列表。
+ * 没有链接的平台输出 <div>，有链接的输出 <a>，两者共用 .site-social-account。
+ * 改账号信息只改这里的数组，两处同时生效。
+ */
+function argon_xd_social_accounts() {
+	$icon_base = get_template_directory_uri() . '/assets/img/';
+	$accounts  = array(
+		array(
+			'icon'     => 'social-wechat.svg',
+			'platform' => '微信公众号',
+			'name'     => '晓栋XD',
+			'account'  => '',
+			'url'      => '',
+		),
+		array(
+			'icon'     => 'social-douyin.svg',
+			'platform' => '抖音',
+			'name'     => '晓栋XD',
+			'account'  => 'xdshcn',
+			'url'      => '',
+		),
+		array(
+			'icon'     => 'social-xiaohongshu.svg',
+			'platform' => '小红书',
+			'name'     => '晓栋XD',
+			'account'  => '366520022',
+			'url'      => '',
+		),
+		array(
+			'icon'     => 'social-bilibili.svg',
+			'platform' => 'Bilibili',
+			'name'     => '晓栋XD',
+			'account'  => '14556688',
+			'url'      => 'https://space.bilibili.com/14556688',
+		),
+	);
+
+	$html  = '<section class="site-socials" aria-label="关注晓栋XD">';
+	$html .= '<span class="site-socials-label">关注我</span>';
+	$html .= '<div class="site-socials-row">';
+
+	foreach ( $accounts as $account ) {
+		$meta = '<span class="site-social-meta"><strong>' . esc_html( $account['name'] ) . '</strong>';
+		if ( '' !== $account['account'] ) {
+			$meta .= '<small>' . esc_html( $account['account'] ) . '</small>';
+		}
+		$meta .= '</span>';
+
+		$inner = '<img src="' . esc_url( $icon_base . $account['icon'] ) . '" alt="' . esc_attr( $account['platform'] ) . '">'
+			. '<span class="site-social-platform">' . esc_html( $account['platform'] ) . '</span>'
+			. $meta;
+
+		if ( '' !== $account['url'] ) {
+			$html .= '<a class="site-social-account" href="' . esc_url( $account['url'] ) . '" target="_blank" rel="noopener">' . $inner . '</a>';
+		} else {
+			$html .= '<div class="site-social-account">' . $inner . '</div>';
+		}
+	}
+
+	$html .= '</div></section>';
+
+	return $html;
+}
+
+/**
+ * 左侧栏「推荐文章」列表。
+ *
+ * 优先取当前文章同分类的文章，数量不够时用最新文章补齐；当前文章本身始终排除。
+ * 没有分类（或在非文章页面）时就是一份「最新文章」。
+ *
+ * @param int $limit 需要的条数。
+ * @return WP_Post[]
+ */
+function argon_xd_leftbar_recommend_posts( $limit = 5 ) {
+	$limit = max( 1, (int) $limit );
+	if ( ! post_type_exists( 'post' ) ) {
+		return array();
+	}
+
+	$exclude = array();
+	if ( is_singular( 'post' ) ) {
+		$exclude[] = (int) get_queried_object_id();
+	}
+
+	$args = array(
+		'post_type'           => 'post',
+		'post_status'         => 'publish',
+		'posts_per_page'      => $limit,
+		'post__not_in'        => $exclude,
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
+	);
+
+	$posts = array();
+
+	if ( is_singular( 'post' ) ) {
+		$categories = wp_get_post_categories( get_queried_object_id() );
+		if ( ! empty( $categories ) ) {
+			$category_args                = $args;
+			$category_args['category__in'] = array_slice( (array) $categories, 0, 2 );
+			$posts                         = get_posts( $category_args );
+		}
+	}
+
+	if ( count( $posts ) < $limit ) {
+		$fill_args                 = $args;
+		$fill_args['post__not_in'] = array_merge( $exclude, wp_list_pluck( $posts, 'ID' ) );
+		$fill_args['posts_per_page'] = $limit - count( $posts );
+		$posts                     = array_merge( $posts, get_posts( $fill_args ) );
+	}
+
+	return $posts;
+}
+
 $argon_version = !(wp_get_theme() -> Template) ? wp_get_theme() -> Version : wp_get_theme(wp_get_theme() -> Template) -> Version;
 $GLOBALS['theme_version'] = $argon_version;
 $GLOBALS['assets_path'] = get_template_directory_uri();
@@ -2334,18 +2452,26 @@ function argon_get_post_outdated_info(){
 }
 //Gutenberg 编辑器区块
 function argon_init_gutenberg_blocks() {
+	$block_script_path = get_template_directory() . '/gutenberg/dist/blocks.build.js';
+	$block_editor_style_path = get_template_directory() . '/gutenberg/dist/blocks.editor.build.css';
+
+	/* 构建文件上传不完整时不要让 WordPress 输出 filemtime 警告。 */
+	if ( ! is_readable( $block_script_path ) || ! is_readable( $block_editor_style_path ) ) {
+		return;
+	}
+
 	wp_register_script(
 		'argon-gutenberg-block-js',
 		$GLOBALS['assets_path'].'/gutenberg/dist/blocks.build.js',
 		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-editor'),
-		null,
+		filemtime( $block_script_path ),
 		true
 	);
 	wp_register_style(
 		'argon-gutenberg-block-backend-css',
 		$GLOBALS['assets_path'].'/gutenberg/dist/blocks.editor.build.css',
 		array('wp-edit-blocks'),
-		filemtime(get_template_directory() . '/gutenberg/dist/blocks.editor.build.css')
+		filemtime( $block_editor_style_path )
 	);
 	register_block_type(
 		'argon/argon-gutenberg-block', array(
@@ -3138,3 +3264,71 @@ function argon_login_page_style() {
 if (get_option('argon_enable_login_css') == 'true'){
 	add_action('login_head', 'argon_login_page_style');
 }
+
+/**
+ * 全站文章列表页：/articles/
+ *
+ * 首页被 front-page.php 换成了 hero，WordPress 默认的那个「全部文章」列表
+ * （index.php）就没有任何入口了。这里把 /articles/ 路由到首页查询（is_home），
+ * 再把模板换成 index.php——列表样式、分页、pjax 全都沿用原来的，等于把
+ * 默认首页原样搬到一个固定地址上。
+ */
+function argon_xd_is_articles_list() {
+	return (bool) get_query_var( 'xd_articles' );
+}
+
+function argon_xd_articles_rewrite() {
+	add_rewrite_rule( '^articles/?$', 'index.php?xd_articles=1', 'top' );
+	add_rewrite_rule( '^articles/page/([0-9]{1,})/?$', 'index.php?xd_articles=1&paged=$matches[1]', 'top' );
+	/* 新规则要刷一次才进 rewrite_rules。用选项打标记，只刷一次，
+	   省得让用户去后台「设置 → 固定链接」点保存。 */
+	if ( get_option( 'argon_xd_articles_rewrite' ) !== '1' ) {
+		flush_rewrite_rules( false );
+		update_option( 'argon_xd_articles_rewrite', '1' );
+	}
+}
+add_action( 'init', 'argon_xd_articles_rewrite', 99 );
+
+function argon_xd_articles_query_var( $vars ) {
+	$vars[] = 'xd_articles';
+	return $vars;
+}
+add_filter( 'query_vars', 'argon_xd_articles_query_var' );
+
+/* 这条查询的 is_home() 为真，模板层级会挑走 front-page.php；换回列表模板 */
+function argon_xd_articles_template( $template ) {
+	if ( ! argon_xd_is_articles_list() ) {
+		return $template;
+	}
+	$list = locate_template( 'index.php' );
+	return $list ? $list : $template;
+}
+add_filter( 'template_include', 'argon_xd_articles_template', 20 );
+
+/* 它是 is_home，redirect_canonical 会当成「不在根路径的首页」拽回 / */
+function argon_xd_articles_no_canonical( $redirect ) {
+	return argon_xd_is_articles_list() ? false : $redirect;
+}
+add_filter( 'redirect_canonical', 'argon_xd_articles_no_canonical' );
+
+/* 别套首页那套 body class：那个会隐藏 banner、把 #content 拉成通栏 */
+function argon_xd_articles_body_class( $classes ) {
+	if ( ! argon_xd_is_articles_list() ) {
+		return $classes;
+	}
+	$classes   = array_diff( $classes, array( 'argon-xd-front-page' ) );
+	$classes[] = 'argon-xd-interior';
+	$classes[] = 'xd-articles';
+	return array_values( array_unique( $classes ) );
+}
+add_filter( 'body_class', 'argon_xd_articles_body_class', 20 );
+
+/* 标题默认会拼上站点副标题 */
+function argon_xd_articles_title( $parts ) {
+	if ( argon_xd_is_articles_list() ) {
+		$parts['title'] = '全部文章';
+		unset( $parts['page'], $parts['paged'] );
+	}
+	return $parts;
+}
+add_filter( 'document_title_parts', 'argon_xd_articles_title' );

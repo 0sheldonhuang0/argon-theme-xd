@@ -42,88 +42,173 @@ body.argon-xd-front-page #content {
 	width: 100%;
 }
 
-.front-page-section-label {
-	color: var(--themecolor);
-	font-size: .78rem;
-	font-weight: 700;
-	letter-spacing: .18em;
-	margin: 0 0 22px;
-}
-
 .front-page-hub {
 	background:
 		linear-gradient(135deg, rgba(var(--themecolor-rgbstr), .06), rgba(var(--themecolor-rgbstr), 0) 48%),
 		#f8f9fc;
-	/* 首页内容很少，撑满一屏的高度可以让页脚落在视口底部，
-	   否则首屏下方会露出一大块纯色空白。 */
+	/* 首页内容很少：撑满一屏并把内容垂直居中，空白分到上下两侧，
+	   比全部堆在页脚上方像「没写完」要稳。 */
+	align-items: center;
+	display: flex;
 	min-height: calc(100vh - 70px);
-	padding: 112px 0 44px;
+	padding: 100px 0 56px;
 }
 
-.front-page-hub .front-page-section-heading {
-	margin-bottom: 32px;
-}
-
-.front-page-hub .front-page-section-label {
-	margin-bottom: 0;
-}
-
-.front-page-section-heading {
-	margin-bottom: 50px;
-	max-width: 720px;
-}
-
-.front-page-project-grid {
+/* 首页首屏：左边定位说明（青少年科创 / 教育产品）+ 右边产品卡（FRMEMO）。
+   两栏等高，各自的 CTA 都压在框底，扫下来是一条基线。 */
+.front-page-hero {
+	align-items: stretch;
 	display: grid;
 	gap: 22px;
-	grid-template-columns: 1.15fr .85fr;
+	grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
 }
 
-.front-page-project {
-	background: #f4f6fb;
+.front-page-hero-intro {
+	background:
+		linear-gradient(145deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0)),
+		var(--themecolor);
+	border-radius: 26px;
+	color: #fff;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 48px;
+}
+
+.front-page-hero-kicker {
+	font-size: .75rem;
+	font-weight: 700;
+	letter-spacing: .16em;
+	margin: 0;
+	opacity: .72;
+}
+
+.front-page-hero-title {
+	color: #fff;
+	font-size: clamp(1.75rem, 2.4vw, 2.3rem);
+	font-weight: 650;
+	letter-spacing: -.03em;
+	line-height: 1.28;
+	margin: 26px 0 20px;
+	/* 标题较长时折行，让两行长度接近，不要第一行满满、第二行只剩两个词 */
+	text-wrap: balance;
+}
+
+.front-page-hero-line {
+	font-size: 1rem;
+	line-height: 1.9;
+	margin: 0;
+	opacity: .9;
+	/* 长段落折行后避免出现「最后一行只剩一两个字」 */
+	text-wrap: pretty;
+}
+
+/* 两段是不同的内容（定位 / 方法），不是同一句的续行，间距要拉开 */
+.front-page-hero-line + .front-page-hero-line {
+	margin-top: 14px;
+}
+
+/* 第二段退一档：第一段讲做什么，第二段讲怎么做。
+   靠字号 + 透明度拉层次，但别压太狠——底色是主题色，白字本来就吃对比度。 */
+.front-page-hero-line--sub {
+	font-size: .95rem;
+	line-height: 1.85;
+	opacity: .82;
+}
+
+.front-page-hero-more {
+	align-self: flex-start;
+	border-bottom: 1px solid rgba(255, 255, 255, .42);
+	color: #fff;
+	font-size: .95rem;
+	font-weight: 650;
+	margin-top: 40px;
+	padding-bottom: 3px;
+	text-decoration: none;
+	transition: border-color .2s ease;
+}
+
+.front-page-hero-more:hover {
+	border-bottom-color: #fff;
+	color: #fff;
+	text-decoration: none;
+}
+
+/* 右侧产品卡：图标 → 名称 → 一句话 → 两个出口 */
+.front-page-hero-product {
+	background: #fff;
 	border: 1px solid rgba(23, 43, 77, .07);
 	border-radius: 26px;
 	color: #172b4d;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	min-height: 410px;
-	padding: 44px;
-	transition: transform .25s ease, box-shadow .25s ease;
+	padding: 40px;
 }
 
-.front-page-project:hover {
-	box-shadow: 0 24px 58px rgba(23, 43, 77, .12);
+/* 玻璃图标：圆角按 iOS 图标比例（约 22.4%），投影用 CSS 给，
+   图片本身的外发光已在导出时裁掉——不然缩到站内尺寸会糊成一团白雾。
+   白玻璃压在白卡上对比很弱，投影稍重一点才能「浮」起来。 */
+.front-page-product-icon {
+	background: transparent;
+	border-radius: 20px;
+	box-shadow:
+		0 0 0 .5px rgba(23, 43, 77, .08),
+		0 14px 30px -10px rgba(23, 43, 77, .3),
+		0 3px 7px rgba(23, 43, 77, .07);
+	display: block;
+	height: 88px;
+	width: 88px;
+}
+
+.front-page-product-name {
 	color: #172b4d;
-	text-decoration: none;
-	transform: translateY(-5px);
-}
-
-.front-page-project-featured {
-	background:
-		linear-gradient(145deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0)),
-		var(--themecolor);
-	color: #fff;
-}
-
-.front-page-project-featured:hover {
-	color: #fff;
-}
-
-.front-page-project-kicker {
-	font-size: .75rem;
-	font-weight: 700;
-	letter-spacing: .14em;
-	opacity: .72;
-}
-
-.front-page-project h2,
-.front-page-project h3 {
-	color: inherit;
-	font-size: clamp(1.8rem, 3vw, 3rem);
+	font-size: 1.5rem;
 	font-weight: 650;
-	letter-spacing: -.035em;
-	margin: 40px 0 18px;
+	letter-spacing: -.02em;
+	margin: 26px 0 0;
+}
+
+.front-page-product-name span {
+	color: #8b95a7;
+	font-size: .95rem;
+	font-weight: 600;
+	letter-spacing: .06em;
+	margin-left: 2px;
+}
+
+.front-page-product-tagline {
+	color: #5c6980;
+	font-size: .96rem;
+	line-height: 1.7;
+	margin: 8px 0 0;
+}
+
+.front-page-product-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 36px;
+}
+
+.front-page-product-action {
+	align-items: center;
+	border: 1px solid rgba(23, 43, 77, .14);
+	border-radius: 999px;
+	color: #172b4d;
+	display: inline-flex;
+	font-size: .9rem;
+	font-weight: 650;
+	gap: 4px;
+	padding: 9px 16px;
+	transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.front-page-product-action:hover {
+	background: rgba(var(--themecolor-rgbstr), .08);
+	border-color: var(--themecolor);
+	color: var(--themecolor);
+	text-decoration: none;
 }
 
 .front-page-entry-grid {
@@ -165,39 +250,47 @@ body.argon-xd-front-page #content {
 	font-weight: 650;
 }
 
-.front-page-project p {
-	font-size: 1.02rem;
-	line-height: 1.85;
-	margin: 0;
-	opacity: .78;
-}
-
-.front-page-project-tags {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 24px;
-}
-
-.front-page-project-tags span {
-	border: 1px solid currentColor;
-	border-radius: 999px;
-	font-size: .78rem;
-	opacity: .65;
-	padding: 7px 12px;
-}
-
-.front-page-project > span {
-	font-size: .92rem;
-	font-weight: 650;
-	margin-top: 42px;
-}
-
 html.darkmode .front-page-hub {
 	background: #15171b;
 }
 
-html.darkmode .front-page-project:not(.front-page-project-featured),
+html.darkmode .front-page-hero-product {
+	background: #202329;
+	border-color: rgba(255, 255, 255, .08);
+	color: #f3f5fa;
+}
+
+/* 深色卡上白玻璃不需要描边，投影换成纯黑才压得住 */
+html.darkmode .front-page-product-icon {
+	box-shadow:
+		0 0 0 .5px rgba(255, 255, 255, .1),
+		0 14px 30px -10px rgba(0, 0, 0, .6),
+		0 3px 7px rgba(0, 0, 0, .3);
+}
+
+html.darkmode .front-page-product-name {
+	color: #f3f5fa;
+}
+
+html.darkmode .front-page-product-name span {
+	color: #8b95a7;
+}
+
+html.darkmode .front-page-product-tagline {
+	color: #a8b1c2;
+}
+
+html.darkmode .front-page-product-action {
+	border-color: rgba(255, 255, 255, .14);
+	color: #e6eaf2;
+}
+
+html.darkmode .front-page-product-action:hover {
+	background: rgba(var(--themecolor-rgbstr), .18);
+	border-color: var(--themecolor);
+	color: #fff;
+}
+
 html.darkmode .front-page-entry {
 	background: #202329;
 	border-color: rgba(255, 255, 255, .08);
@@ -205,8 +298,14 @@ html.darkmode .front-page-entry {
 }
 
 @media (max-width: 900px) {
-	.front-page-project-grid {
+	.front-page-hero {
 		grid-template-columns: 1fr;
+	}
+
+	.front-page-hero-intro,
+	.front-page-hero-product {
+		min-height: 0;
+		padding: 36px;
 	}
 
 	.front-page-entry-grid {
@@ -228,9 +327,27 @@ html.darkmode .front-page-entry {
 		padding: 100px 0 36px;
 	}
 
-	.front-page-project {
-		min-height: 360px;
-		padding: 30px;
+	.front-page-hero-intro,
+	.front-page-hero-product {
+		border-radius: 20px;
+		padding: 28px;
+	}
+
+	.front-page-hero-title {
+		font-size: 1.6rem;
+		margin: 20px 0 16px;
+	}
+
+	.front-page-hero-line {
+		font-size: .95rem;
+	}
+
+	.front-page-hero-more {
+		margin-top: 28px;
+	}
+
+	.front-page-product-actions {
+		margin-top: 28px;
 	}
 }
 

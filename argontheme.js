@@ -395,7 +395,10 @@ $(document).on("change" , ".search-filter" , function(e){
 
 /*左侧栏随页面滚动浮动*/
 !function(){
-	if ($("#leftbar").length == 0){
+	/* 侧栏里已经没有 #leftbar_part1（作者 banner + 菜单那套已删掉），
+	   取它的 offset 会得到 undefined 直接抛错，后面半份脚本就全不执行了。
+	   整栏在 site-content.css 里已经用 sticky 固定，这里不需要再算浮动逻辑。 */
+	if ($("#leftbar").length == 0 || $("#leftbar_part1").length == 0){
 		let contentOffsetTop = $('#content').offset().top;
 		function changeLeftbarStickyStatusWithoutSidebar(){
 			let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
@@ -1877,18 +1880,160 @@ if ($("html").hasClass("banner-as-cover")){
 	});
 }
 
-/*Pjax*/
+/*Pjax
+  页面版式全部挂在 <body> 的 class 上：argon-xd-front-page 是首页单栏，
+  argon-xd-interior（配 .single / .page）才排「300px 左栏 + 正文」两栏。
+  而 pjax 只替换 #primary / #leftbar 这些容器，<body> 一直是首次加载那份，
+  所以每次导航都得自己把 class 接住。三条路径分别覆盖：
+
+  1. 首次加载 —— 脚本执行时按 DOM 算一次；
+  2. 点击链接 —— pjax:success，响应里带完整 <body class>，直接照抄；
+  3. 浏览器后退 / 前进 —— 命中 pjax 内存缓存时不会再发请求，
+     只有 pjax:end，拿不到响应 HTML。以前这里什么都不做，从文章页
+     退回首页就会留着 argon-xd-interior single：#leftbar 被首页规则
+     隐藏了，两栏 grid 还在，正文左边空出 300px —— 也就是刷新才好。 */
+var XD_BODY_REACTIVE_CLASSES = ['leftbar-opened', 'leftbar-can-headroom'];
+/* 会话内记下「地址 → 该页的 body class」，供缓存后退时复原 */
+var xdBodyClassByUrl = {};
+
 function syncArgonXdPageContext(){
 	let isFrontPage = document.querySelector(".front-page-main") !== null;
 	document.body.classList.toggle("argon-xd-front-page", isFrontPage);
 	document.body.classList.toggle("argon-xd-interior", !isFrontPage);
+	return isFrontPage;
 }
+
+/* 同源地址归一化成 pathname+search，丢掉 hash 和协议差异，用来做缓存键 */
+function xdUrlKey(url){
+	try{
+		let target = new URL(url, window.location.href);
+		target.hash = "";
+		return target.pathname + target.search;
+	}catch (err){
+		return url || "";
+	}
+}
+
+/* 按一组 class 重写 body。服务端不知道运行期状态，侧栏展开这类类要留着 */
+function xdApplyBodyClasses(list){
+	Array.prototype.slice.call(document.body.classList).forEach(function(className){
+		if (list.indexOf(className) < 0 && XD_BODY_REACTIVE_CLASSES.indexOf(className) < 0){
+			document.body.classList.remove(className);
+		}
+	});
+	list.forEach(function(className){
+		document.body.classList.add(className);
+	});
+}
+
+function xdRememberBodyClasses(url){
+	if (!url){
+		return;
+	}
+	xdBodyClassByUrl[xdUrlKey(url)] = Array.prototype.filter.call(document.body.classList, function(className){
+		return XD_BODY_REACTIVE_CLASSES.indexOf(className) < 0;
+	});
+}
+
+/* 响应 HTML 里的 body class 是最准的：single / page / home / archive
+   这些判断类只有服务端知道。 */
+function syncArgonXdBodyClasses(html){
+	if (!html){
+		return;
+	}
+	var matched = /<body[^>]*class=["']([^"']*)["']/i.exec(html);
+	if (!matched){
+		return;
+	}
+	xdApplyBodyClasses(matched[1].split(/\s+/).filter(Boolean));
+	syncArgonXdPageContext();
+	xdRememberBodyClasses(window.location.href);
+}
+$(document).on('pjax:success', function(event, data){
+	syncArgonXdBodyClasses(data);
+});
+
+/* 缓存命中的后退 / 前进只走到 pjax:end（每个容器各触发一次，重复执行无副作用）：
+   有这次会话的记录就整份复原，没有记录至少按 DOM 校正首页 / 内页这两个类。 */
+$(document).on('pjax:end', function(){
+	var known = xdBodyClassByUrl[xdUrlKey(window.location.href)];
+	if (known){
+		xdApplyBodyClasses(known);
+	}
+	syncArgonXdPageContext();
+});
+
 syncArgonXdPageContext();
+xdRememberBodyClasses(window.location.href);
+
+/*左侧栏文章目录
+  原来这段初始化写在 sidebar.php 的内联 <script> 里，而 pjax 只执行带 src 的外链脚本，
+  站内跳转时目录就一直是空的。挪到这里由 pjax:complete 统一重建。
+  旧实例的 headerList 要清空：headIndex 在 window 上挂的是匿名 scroll 回调，
+  不清理的话每翻一篇文章就会多一个还在算旧文章标题位置的监听。 */
+var xdCatalogInstance = null;
+
+/*目录编号：1 / 1.1 / 1.1.1
+  层级取自目录自身的嵌套 <ul>（headIndex 已经按标题级别把树建好了），
+  而不是读 h 标签的数字——文章从 h2 直接跳到 h4 时，按标签算会留下
+  「1.0.1」这种空位，按嵌套算就是干净的「1.1」。
+  编号写成 <span> 而不是 CSS 的 ::before，这样数字可以单独调字号、定宽，
+  条目文字的左边缘仍然齐；pointer-events:none 保证点击落回 <a> 上，
+  否则 headIndex 的点击代理认不出 target。 */
+function xdCatalogNumber($box){
+	var walk = function($ul, prefix){
+		var i = 0;
+		$ul.children('li.index-item').each(function(){
+			var $item = $(this);
+			i++;
+			var label = prefix ? prefix + '.' + i : String(i);
+			var $link = $item.children('a.index-link');
+			if ($link.length && $link.children('.xd-catalog-num').length === 0){
+				$('<span class="xd-catalog-num" aria-hidden="true"></span>').text(label).prependTo($link);
+			}
+			var $sub = $item.children('ul.index-subItem-box');
+			if ($sub.length){
+				walk($sub, label);
+			}
+		});
+	};
+	var $root = $box.children('ul');
+	if ($root.length === 0){
+		$root = $box.find('ul').first();
+	}
+	if ($root.length){
+		walk($root, '');
+	}
+}
+
+function leftbarCatalogInit(){
+	let $catalog = $("#leftbar_catalog");
+	if ($catalog.length == 0 || $("#post_content").length == 0 || !$.fn.headIndex){
+		return;
+	}
+	if (xdCatalogInstance && xdCatalogInstance.headerList){
+		xdCatalogInstance.headerList = [];
+	}
+	$catalog.empty();
+	$catalog.headIndex({
+		articleWrapSelector: '#post_content',
+		indexBoxSelector: '#leftbar_catalog',
+		indexScrollBoxSelector: '#leftbar_part2_inner',
+		subItemBoxClass: "index-subItem-box",
+		itemClass: "index-item",
+		linkClass: "index-link",
+		offset: 80
+	});
+	xdCatalogInstance = $catalog.data("headIndex") || null;
+	xdCatalogNumber($catalog);
+}
 
 var pjaxScrollTop = 0, pjaxLoading = false;
 $.pjax.defaults.timeout = 10000;
-$.pjax.defaults.container = ['#primary', '#leftbar_part1_menu', '#leftbar_part2_inner', '.page-information-card-container', '#rightbar', '#wpadminbar'];
-$.pjax.defaults.fragment = ['#primary', '#leftbar_part1_menu', '#leftbar_part2_inner', '.page-information-card-container', '#rightbar', '#wpadminbar'];
+/* 侧栏整块由 #leftbar 承载（目录 + 推荐文章），pjax 直接替换它；
+   原来的 #leftbar_part1_menu / #leftbar_part2_inner 已经不存在了。 */
+$.pjax.defaults.container = ['#primary', '#leftbar', '.page-information-card-container', '#rightbar', '#wpadminbar'];
+$.pjax.defaults.fragment = ['#primary', '#leftbar', '.page-information-card-container', '#rightbar', '#wpadminbar'];
 $(document).pjax("a[href]:not([no-pjax]):not(.no-pjax):not([target='_blank']):not([download]):not(.reference-link):not(.reference-list-backlink)")
 .on('pjax:click', function(e, f, g){
 	if (argonConfig.disable_pjax == true){
@@ -1944,6 +2089,7 @@ $(document).pjax("a[href]:not([no-pjax]):not(.no-pjax):not([target='_blank']):no
 }).on('pjax:complete', function() {
 	pjaxLoading = false;
 	syncArgonXdPageContext();
+	leftbarCatalogInit();
 	NProgress.inc();
 	try{
 		if (MathJax != undefined){
@@ -2556,6 +2702,7 @@ function highlightJsRender(){
 $(document).ready(function(){
 	highlightJsRender();
 	waterflowInit();
+	leftbarCatalogInit();
 });
 $(document).on("click" , ".hljs-control-fullscreen" , function(){
 	let block = $(this).parent().parent();
